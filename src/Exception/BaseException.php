@@ -58,7 +58,7 @@ class BaseException extends Exception
    * @access public
    * @return array
    */
-  final public function getErrorInfo()
+  final public function getErrorInfo(): array
   {
     // TODO 待实现
     return [];
