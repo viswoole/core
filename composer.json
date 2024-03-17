@@ -1,6 +1,6 @@
 {
   "name": "viswoole/core",
-  "description": "这是SuPHP的核心构建库",
+  "description": "这是ViSwoole的核心构建库",
   "version": "dev-master",
   "minimum-stability": "stable",
   "license": "proprietary",
@@ -16,7 +16,7 @@
   },
   "autoload": {
     "psr-4": {
-      "core\\": "src"
+      "ViSwoole\\Core": "src"
     }
   }
 }
