@@ -15,8 +15,11 @@
     "ext-swoole": ">=5.1"
   },
   "autoload": {
+    "files": [
+      "src/Helper.php"
+    ],
     "psr-4": {
-      "ViSwoole\\Core": "src"
+      "ViSwoole\\Core\\": "src"
     }
   }
 }
