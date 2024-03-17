@@ -1,0 +1,22 @@
+{
+  "name": "viswoole/core",
+  "description": "这是SuPHP的核心构建库",
+  "version": "dev-master",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "zhuchonglin",
+      "email": "8210856@qq.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.3",
+    "ext-swoole": ">=5.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "core\\": "src"
+    }
+  }
+}
