@@ -508,6 +508,6 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   #[Override] public function count(): int
   {
-    return count($this->bindings);
+    return count($this->singleInstance);
   }
 }
