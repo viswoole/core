@@ -15,31 +15,10 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Exception;
 
-use Psr\Container\NotFoundExceptionInterface;
-use Throwable;
-
 /**
- * 找不到方法异常
- * @access class
+ * 用于依赖注入反射执行某个函数不存在时抛出
  */
-class FuncNotFoundException extends BaseRuntimeException implements NotFoundExceptionInterface
+class FuncNotFoundException extends NotFoundExceptionAbstract
 {
-  protected string $func;
 
-  public function __construct(string $message, string $func = '', Throwable $previous = null)
-  {
-    $this->message = $message;
-    $this->func = $func;
-    parent::__construct($message, 0, $previous);
-  }
-
-  /**
-   * 获取方法名
-   * @access public
-   * @return string
-   */
-  public function getFunc(): string
-  {
-    return $this->func;
-  }
 }
