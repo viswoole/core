@@ -484,7 +484,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
-   * 删除容器中的对象实例
+   * 删除容器中的服务实例
    * @access public
    * @param string $abstract
    * @return void
