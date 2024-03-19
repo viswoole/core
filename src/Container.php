@@ -154,32 +154,25 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
-   * 创建依赖实例，已经存在则直接获取。
+   * 获取容器中的服务，已经存在则直接获取。
    *
    * @param string $abstract 类名或标识
    * @param array $vars 参数
-   * @param bool $autoBind 是否自动绑定实例（绑定过后无需每次都创建新的实例，仅对类有效）
    * @return mixed 返回闭包函数运行结果，或类实例对象
    */
-  public function make(string $abstract, array $vars = [], bool $autoBind = false): mixed
+  public function make(string $abstract, array $vars = []): mixed
   {
     $concrete = $this->getTheRealConcrete($abstract);
+    $key = is_string($concrete) ? $concrete : $abstract;
     // 如果已经缓存过实例 直接返回
-    if (is_string($concrete) && isset($this->singleInstance[$concrete])) {
+    if (isset($this->singleInstance[$key])) {
       return $this->singleInstance[$concrete];
     }
     $result = $this->{($concrete instanceof Closure) ? 'invokeFunction' : 'invokeClass'}(
       $concrete, $vars
     );
-    // 如果需要缓存实例，则将实例缓存起来
-    if ($autoBind && is_string($concrete)) {
-      $this->singleInstance[$concrete] = $result;
-      // 绑定进服务
-      if (!isset($this->bindings[$abstract])) {
-        $this->bindings[$abstract] = $concrete;
-        $this->singleInstance[$concrete] = $result;
-      }
-    }
+    // 缓存结果
+    $this->singleInstance[$key] = $result;
     return $result;
   }
 
@@ -509,7 +502,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
-   * 获取容器中绑定实例的数量
+   * 获取容器中实例的数量
    *
    * @return int
    */
