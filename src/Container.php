@@ -44,7 +44,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   protected static Container $instance;
   /**
-   * 容器绑定标识
+   * 服务绑定标识
    * @var array
    */
   protected array $bindings = [];
