@@ -57,7 +57,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 容器中缓存的单实例
    * @var array
    */
-  private array $singleInstance = [];
+  protected array $singleInstance = [];
 
   /**
    * 获取单实例
@@ -110,7 +110,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @param array $vars 传递的参数数组
    * @return array
    */
-  private function bindParams(ReflectionFunctionAbstract $reflect, array $vars = []): array
+  protected function bindParams(ReflectionFunctionAbstract $reflect, array $vars = []): array
   {
     // 获取参数列表
     $params = $reflect->getParameters();
@@ -189,7 +189,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @param string $abstract 标识
    * @return string|Closure 获取真实的类名或函数
    */
-  private function getTheRealConcrete(string $abstract): string|Closure
+  protected function getTheRealConcrete(string $abstract): string|Closure
   {
     if (isset($this->bindings[$abstract])) {
       $bind = $this->bindings[$abstract];
