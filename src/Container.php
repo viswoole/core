@@ -43,18 +43,16 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @var Container
    */
   protected static Container $instance;
-
-  /**
-   * 容器中缓存的实例
-   * @var array
-   */
-  private array $cacheInstances = [];
-
   /**
    * 容器绑定标识
    * @var array
    */
-  private array $bindings = [];
+  protected array $bindings = [];
+  /**
+   * 容器中缓存的单实例
+   * @var array
+   */
+  private array $singleInstance = [];
 
   /**
    * 获取单实例
@@ -171,19 +169,19 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   {
     $concrete = $this->getTheRealConcrete($abstract);
     // 如果已经缓存过实例 直接返回
-    if (is_string($concrete) && isset($this->cacheInstances[$concrete])) {
-      return $this->cacheInstances[$concrete];
+    if (is_string($concrete) && isset($this->singleInstance[$concrete])) {
+      return $this->singleInstance[$concrete];
     }
     $result = $this->{($concrete instanceof Closure) ? 'invokeFunction' : 'invokeClass'}(
       $concrete, $vars
     );
     // 如果需要缓存实例，则将实例缓存起来
     if ($autoBind && is_string($concrete)) {
-      $this->cacheInstances[$concrete] = $result;
+      $this->singleInstance[$concrete] = $result;
       // 绑定进服务
       if (!isset($this->bindings[$abstract])) {
         $this->bindings[$abstract] = $concrete;
-        $this->cacheInstances[$concrete] = $result;
+        $this->singleInstance[$concrete] = $result;
       }
     }
     return $result;
@@ -349,7 +347,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
 
   #[Override] public function getIterator(): ArrayIterator
   {
-    return new ArrayIterator($this->cacheInstances);
+    return new ArrayIterator($this->singleInstance);
   }
 
   #[Override] public function offsetExists(mixed $offset): bool
@@ -367,7 +365,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   public function exists(string $abstract): bool
   {
     $concreteName = $this->getTheRealConcrete($abstract);
-    return isset($this->cacheInstances[$concreteName]);
+    return isset($this->singleInstance[$concreteName]);
   }
 
   #[Override] public function offsetGet(mixed $offset): mixed
@@ -400,7 +398,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       // 绑定映射
       $this->bindings[$abstract] = $className;
       // 缓存实例
-      $this->cacheInstances[$className] = $concrete;
+      $this->singleInstance[$className] = $concrete;
     } elseif (is_string($concrete)) {
       // 如果为无效类名同时未绑定到容器中，则抛出异常
       if (!class_exists($concrete) && !isset($this->bindings[$concrete])) {
@@ -432,7 +430,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   {
     $abstract = $this->getTheRealConcrete($abstract);
 
-    if (isset($this->cacheInstances[$abstract])) unset($this->cacheInstances[$abstract]);
+    if (isset($this->singleInstance[$abstract])) unset($this->singleInstance[$abstract]);
   }
 
   public function __unset($name)
