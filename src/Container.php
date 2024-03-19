@@ -50,6 +50,10 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   protected array $bindings = [];
   /**
+   * @var array 解析类时的需要触发的回调
+   */
+  protected array $invokeCallback = [];
+  /**
    * 容器中缓存的单实例
    * @var array
    */
@@ -134,7 +138,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
           } else {
             $funcName = $reflect->getName();
             throw new InvalidArgumentException(
-              "在执行容器反射调用{$funcName}时未传递其必填参数{$paramName}"
+              "在执行容器反射调用{$funcName}时未传递其必填参数$paramName"
             );
           }
         }
@@ -287,7 +291,15 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       if ($method->isPublic() && $method->isStatic()) {
         $args = $this->bindParams($method, $vars);
         try {
-          return $method->invokeArgs(...$args);
+          $instance = $method->invokeArgs(...$args);
+          if (!($instance instanceof $class)) {
+            throw new ContainerException(
+              "$class::__make方法返回的实例必须是{$class}类的实例"
+            );
+          }
+          // 触发回调
+          $this->invokeAfter($class, $instance);
+          return $instance;
         } catch (ReflectionException $e) {
           throw new ContainerException(
             "反射执行$class::__make方法失败,{$e->getMessage()}", $e->getCode(), $e
@@ -303,15 +315,81 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       $instance = $reflector->newInstanceArgs($args);
     } catch (ReflectionException $e) {
       throw new ContainerException(
-        "反射执行{$class}构造方法失败,{$e->getMessage()}", $e->getCode(), $e
+        "反射调用{$class}构造方法失败，{$e->getMessage()}", $e->getCode(), $e
       );
     }
     if (is_null($instance)) {
       throw new ContainerException(
-        "反射执行{$class}构造方法失败，调用ReflectionClass::newInstanceArgs()方法返回NULL"
+        "反射调用{$class}构造方法失败，调用ReflectionClass::newInstanceArgs()方法返回NULL"
       );
     }
+    $this->invokeAfter($class, $instance);
     return $instance;
+  }
+
+  /**
+   * 执行invokeClass回调
+   *
+   * @access protected
+   * @param string $class 对象类名
+   * @param object $object 容器对象实例
+   * @return void
+   */
+  protected function invokeAfter(string $class, object $object): void
+  {
+    if (isset($this->invokeCallback['*'])) {
+      foreach ($this->invokeCallback['*'] as $callback) {
+        $callback($object, $this);
+      }
+    }
+    if (isset($this->invokeCallback[$class])) {
+      foreach ($this->invokeCallback[$class] as $callback) {
+        $callback($object, $this);
+      }
+    }
+  }
+
+  /**
+   * 注册一个解析事件回调
+   *
+   * @access public
+   * @param string|Closure $abstract 事件标识或回调闭包
+   * @param Closure|null $callback 事件回调
+   * @return void
+   */
+  public function resolving(string|Closure $abstract, Closure $callback = null): void
+  {
+    if (is_string($abstract)) {
+      $key = $this->getTheRealConcrete($abstract);
+    } else {
+      $key = '*';
+      $callback = $abstract;
+    }
+    $this->invokeCallback[$key][] = $callback;
+  }
+
+  /**
+   * 删除解析事件回调
+   *
+   * @access public
+   * @param string|Closure $abstract
+   * @param Closure|null $callback
+   * @return void
+   */
+  public function removeCallback(string|Closure $abstract, Closure $callback = null): void
+  {
+    if (is_string($abstract)) {
+      $key = $this->getTheRealConcrete($abstract);
+    } else {
+      $key = '*';
+      $callback = $abstract;
+    }
+    if (isset($this->invokeCallback[$key])) {
+      $index = array_search($callback, $this->invokeCallback[$key]);
+      if ($index !== false) {
+        unset($this->invokeCallback[$key][$index]);
+      }
+    }
   }
 
   /**
