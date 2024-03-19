@@ -28,6 +28,7 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use ReflectionUnionType;
 use ViSwoole\Core\Exception\ClassNotFoundException;
 use ViSwoole\Core\Exception\ContainerException;
 use ViSwoole\Core\Exception\FuncNotFoundException;
@@ -57,6 +58,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   /**
    * 获取单实例
    *
+   * @access public
    * @return static
    */
   public static function sign(): static
@@ -65,7 +67,8 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
-   * 获取当前容器的实例（单例）
+   * 创建容器（单例）
+   *
    * @access public
    * @return static
    */
@@ -75,18 +78,6 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       static::$instance = new static;
     }
     return static::$instance;
-  }
-
-  /**
-   * 设置当前容器的实例
-   *
-   * @access public
-   * @param Container $instance
-   * @return void
-   */
-  protected static function setInstance(Container $instance): void
-  {
-    static::$instance = $instance;
   }
 
   /**
@@ -130,8 +121,9 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       $paramType = $param->getType();
       // 根据数组类型决定使用索引或参数名
       $key = $isIndexArray ? $index : $paramName;
-      // 判断参数接收的类型是否为内置类型
-      if (!$paramType || $paramType->isBuiltin()) {
+      // 如果参数类型是联合类型
+      // 判断参数接收的类型是否为内置类型或为联合类型
+      if (!$paramType || $paramType->isBuiltin() || $paramType instanceof ReflectionUnionType) {
         // 检查是否传入了该下标或参数名
         if (array_key_exists($key, $vars)) {
           $value = $vars[$key];
