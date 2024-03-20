@@ -24,10 +24,6 @@ abstract class Facade
    * @var bool
    */
   protected static bool $alwaysNewInstance = false;
-  /**
-   * @var object|null 存储当前实例
-   */
-  protected static object|null $instance = null;
 
   public static function __callStatic($method, $params)
   {
@@ -47,11 +43,7 @@ abstract class Facade
       // 每次都创建新的实例
       return Container::sign()->invokeClass($class);
     } else {
-      if (!isset(static::$instance)) {
-        $instance = Container::sign()->make($class);
-        static::$instance = $instance;
-      }
-      return static::$instance;
+      return Container::sign()->make($class);
     }
   }
 
