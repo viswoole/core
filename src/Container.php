@@ -91,14 +91,14 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       // 如果为无效类名同时未绑定到容器中，则抛出异常
       if (!class_exists($concrete) && !isset($this->bindings[$concrete])) {
         throw new InvalidArgumentException(
-          "Container::bind方法参数2错误:给定的字符串非有效类名，且未绑定到容器中"
+          'Container::bind方法参数2错误:给定的字符串非有效类名，且未绑定到容器中'
         );
       }
       // 绑定到容器
       $this->bindings[$abstract] = $concrete;
     } else {
       throw new InvalidArgumentException(
-        "Container::bind方法参数2错误:绑定到容器的内容必须是可调用的闭包函数、有效的类名、其他已绑定服务标识。"
+        'Container::bind方法参数2错误:绑定到容器的内容必须是可调用的闭包函数、有效的类名、其他已绑定服务标识。'
       );
     }
   }
@@ -163,16 +163,13 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
         // 检查是否传入了该下标或参数名
         if (array_key_exists($key, $vars)) {
           $value = $vars[$key];
+        } elseif ($param->isDefaultValueAvailable()) {
+          $value = $param->getDefaultValue();
         } else {
-          // 如果参数有默认值，则使用默认值，否则抛出异常
-          if ($param->isDefaultValueAvailable()) {
-            $value = $param->getDefaultValue();
-          } else {
-            $funcName = $reflect->getName();
-            throw new InvalidArgumentException(
-              "在执行容器反射调用{$funcName}时未传递其必填参数$paramName"
-            );
-          }
+          $funcName = $reflect->getName();
+          throw new InvalidArgumentException(
+            "在执行容器反射调用{$funcName}时未传递其必填参数$paramName"
+          );
         }
       } else {
         // 如果传入了参数名，则使用传入的值；否则，创建实例
