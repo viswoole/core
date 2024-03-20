@@ -394,7 +394,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 删除解析事件回调
    *
    * @access public
-   * @param string|Closure $abstract
+   * @param string|Closure $abstract 标识或回调闭包
    * @param Closure|null $callback
    * @return void
    */
