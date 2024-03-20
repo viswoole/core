@@ -14,7 +14,17 @@
 declare (strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use ViSwoole\Core\Container;
 
 class ContainerTest extends TestCase
 {
+  public function testContainer()
+
+  {
+    $container = new Container();
+    $container->bind('test', function () {
+      return 'test';
+    });
+    self::assertEquals('test', $container->make('test'));
+  }
 }
