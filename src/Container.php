@@ -59,29 +59,61 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   protected array $singleInstance = [];
 
-  /**
-   * 获取单实例
-   *
-   * @access public
-   * @return static
-   */
-  public static function sign(): static
+  public function __construct()
   {
-    return self::create();
+    // 绑定自身容器
+    $this->bind('container', $this);
+    self::$instance = $this;
   }
 
   /**
-   * 创建容器（单例）
+   * 注册服务到容器中,支持批量注册。
    *
-   * @access public
-   * @return static
+   * @param string|array $abstract 服务标识或接口名称
+   * @param mixed|Countable|string $concrete 服务的具体实现类、闭包函数、对象实例、其他服务标识
    */
-  public static function create(): static
+  public function bind(string|array $abstract, mixed $concrete): void
   {
-    if (!isset(static::$instance)) {
-      static::$instance = new static;
+    if (is_array($abstract)) {
+      foreach ($abstract as $key => $val) {
+        $this->bind($key, $val);
+      }
+    } elseif ($concrete instanceof Closure) {
+      $this->bindings[$abstract] = $concrete;
+    } elseif (is_object($concrete)) {
+      // 如果传入的$concrete是对象实例，则将其缓存，并映射其实例名称
+      $className = get_class($concrete);
+      // 绑定映射
+      $this->bindings[$abstract] = $className;
+      // 缓存实例
+      $this->singleInstance[$className] = $concrete;
+    } elseif (is_string($concrete)) {
+      // 如果为无效类名同时未绑定到容器中，则抛出异常
+      if (!class_exists($concrete) && !isset($this->bindings[$concrete])) {
+        throw new InvalidArgumentException(
+          "Container::bind方法参数2错误:给定的字符串非有效类名，且未绑定到容器中"
+        );
+      }
+      // 绑定到容器
+      $this->bindings[$abstract] = $concrete;
+    } else {
+      throw new InvalidArgumentException(
+        "Container::bind方法参数2错误:绑定到容器的内容必须是可调用的闭包函数、有效的类名、其他已绑定服务标识。"
+      );
     }
-    return static::$instance;
+  }
+
+  /**
+   * 获取容器单实例
+   *
+   * @return Container|static
+   */
+  public static function single(): Container|static
+  {
+    if (!isset(self::$instance)) {
+      throw new ContainerException('容器未初始化，请先实例化容器。');
+    }
+    return self::$instance;
   }
 
   /**
@@ -450,43 +482,6 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   #[Override] public function offsetSet(mixed $offset, mixed $value): void
   {
     $this->bind($offset, $value);
-  }
-
-  /**
-   * 注册服务到容器中,支持批量注册。
-   *
-   * @param string|array $abstract 服务标识或接口名称
-   * @param mixed|Countable|string $concrete 服务的具体实现类、闭包函数、对象实例、其他服务标识
-   */
-  public function bind(string|array $abstract, mixed $concrete): void
-  {
-    if (is_array($abstract)) {
-      foreach ($abstract as $key => $val) {
-        $this->bind($key, $val);
-      }
-    } elseif ($concrete instanceof Closure) {
-      $this->bindings[$abstract] = $concrete;
-    } elseif (is_object($concrete)) {
-      // 如果传入的$concrete是对象实例，则将其缓存，并映射其实例名称
-      $className = get_class($concrete);
-      // 绑定映射
-      $this->bindings[$abstract] = $className;
-      // 缓存实例
-      $this->singleInstance[$className] = $concrete;
-    } elseif (is_string($concrete)) {
-      // 如果为无效类名同时未绑定到容器中，则抛出异常
-      if (!class_exists($concrete) && !isset($this->bindings[$concrete])) {
-        throw new InvalidArgumentException(
-          "Container::bind方法参数2错误:给定的字符串非有效类名，且未绑定到容器中"
-        );
-      }
-      // 绑定到容器
-      $this->bindings[$abstract] = $concrete;
-    } else {
-      throw new InvalidArgumentException(
-        "Container::bind方法参数2错误:绑定到容器的内容必须是可调用的闭包函数、有效的类名、其他已绑定服务标识。"
-      );
-    }
   }
 
   #[Override] public function offsetUnset(mixed $offset): void
