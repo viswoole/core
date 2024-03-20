@@ -112,9 +112,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   public static function single(): Container|static
   {
-    if (!isset(self::$instance)) {
-      throw new ContainerException('容器未初始化，请先实例化容器。');
-    }
+    if (!isset(self::$instance)) new static();
     return self::$instance;
   }
 
