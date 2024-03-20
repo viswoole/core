@@ -14,8 +14,52 @@
 declare (strict_types=1);
 
 namespace ViSwoole\Core;
-
-class Facade
+/**
+ * 门面抽象类
+ */
+abstract class Facade
 {
+  /**
+   * 始终创建新的对象实例
+   * @var bool
+   */
+  protected static bool $alwaysNewInstance = false;
+  /**
+   * @var object|null 存储当前实例
+   */
+  protected static object|null $instance = null;
 
+  public static function __callStatic($method, $params)
+  {
+    return call_user_func_array([static::createFacade(), $method], $params);
+  }
+
+  /**
+   * 创建Facade实例
+   * @static
+   * @access protected
+   * @return object
+   */
+  protected static function createFacade(): object
+  {
+    $class = static::getFacadeClass();
+    if (static::$alwaysNewInstance) {
+      // 每次都创建新的实例
+      return Container::sign()->invokeClass($class);
+    } else {
+      if (!isset(static::$instance)) {
+        $instance = Container::sign()->make($class);
+        static::$instance = $instance;
+      }
+      return static::$instance;
+    }
+  }
+
+  /**
+   * 获取当前Facade对应类名
+   *
+   * @access protected
+   * @return string
+   */
+  abstract protected static function getFacadeClass(): string;
 }
