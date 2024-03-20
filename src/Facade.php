@@ -41,9 +41,9 @@ abstract class Facade
     $class = static::getFacadeClass();
     if (static::$alwaysNewInstance) {
       // 每次都创建新的实例
-      return Container::sign()->invokeClass($class);
+      return Container::single()->invokeClass($class);
     } else {
-      return Container::sign()->make($class);
+      return Container::single()->make($class);
     }
   }
 
