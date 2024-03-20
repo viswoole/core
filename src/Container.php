@@ -61,8 +61,10 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
 
   public function __construct()
   {
-    // 绑定自身容器
+    // 绑定容器自身标识
     $this->bind('container', $this);
+    // 将容器类名映射到标识
+    $this->bind(__CLASS__, 'container');
     self::$instance = $this;
   }
 
