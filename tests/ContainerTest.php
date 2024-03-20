@@ -13,6 +13,8 @@
 
 declare (strict_types=1);
 
+namespace ViSwoole\Core\Tests;
+
 use PHPUnit\Framework\TestCase;
 use ViSwoole\Core\Container;
 
