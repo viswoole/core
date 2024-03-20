@@ -18,15 +18,33 @@ namespace ViSwoole\Core\Tests;
 use PHPUnit\Framework\TestCase;
 use ViSwoole\Core\Container;
 
+class A
+{
+
+}
+
+class B
+{
+  public function test(A $a): A
+  {
+    return $a;
+  }
+}
+
 class ContainerTest extends TestCase
 {
-  public function testContainer()
-
+  /**
+   * 测试绑定和获取
+   *
+   * @return void
+   */
+  public function testBindAndMake()
   {
-    $container = new Container();
-    $container->bind('test', function () {
-      return 'test';
+    // 测试绑定
+    Container::single()->bind('func', function () {
+      return 'func';
     });
-    self::assertEquals('test', $container->make('test'));
+    // 测试make方法并断言输出值
+    self::assertEquals('func', Container::single()->make('func'));
   }
 }
