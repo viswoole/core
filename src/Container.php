@@ -393,19 +393,30 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   #[Override] public function get(string $id): object
   {
-    // 判断是否已经绑定
     return $this->make($id);
   }
 
   /**
-   * 判断是否存在对象实例
+   * 判断标识或接口是否已经绑定
+   *
+   * @access public
+   * @param string $abstract
+   * @return bool
+   */
+  public function hasBind(string $abstract): bool
+  {
+    return isset($this->bindings[$abstract]);
+  }
+
+  /**
+   * 通过标识或接口类名判断是否已经绑定或注册单例
    *
    * @param string $id
    * @return bool
    */
   #[Override] public function has(string $id): bool
   {
-    return isset($this->bindings[$id]);
+    return isset($this->bindings[$id]) || isset($this->singleInstance[$id]);
   }
 
   #[Override] public function getIterator(): ArrayIterator
@@ -419,7 +430,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
-   * 判断容器中是否存在对象实例
+   * 判断容器中是否注册单实例
    *
    * @access public
    * @param string $abstract 类名或者标识
