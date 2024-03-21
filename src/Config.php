@@ -70,6 +70,7 @@ class Config
 
   /**
    * 解析配置文件
+   *
    * @access public
    * @param array $files
    * @return array
@@ -80,20 +81,14 @@ class Config
     foreach ($files as $file) {
       $type = pathinfo($file, PATHINFO_EXTENSION);//文件类型
       $key = pathinfo($file, PATHINFO_FILENAME);//文件名
-      $config = [];
-      switch ($type) {
-        case 'php':
-          $config = include $file;
-          break;
-        case 'json':
-          $config = json_decode(file_get_contents($file), true);
-          break;
-      }
-      if (isset($configs[$key])) {
-        $configs[$key] = array_merge($configs[$key], $config);
-      } else {
-        $configs[$key] = $config;
-      }
+      $config = match ($type) {
+        'php' => include $file,
+        'yml', 'yaml' => function_exists('yaml_parse_file') ? yaml_parse_file($file) : [],
+        'ini' => parse_ini_file($file, true, INI_SCANNER_TYPED) ?: [],
+        'json' => json_decode(file_get_contents($file), true),
+        default => [],
+      };
+      $configs[$key] = isset($configs[$key]) ? array_merge($configs[$key], $config) : $config;
     }
 
     if (!$this->matchCase) $configs = $this->recursiveArrayKeyToLower($configs);
@@ -103,6 +98,7 @@ class Config
 
   /**
    * 递归转换键为小写
+   *
    * @param array $array
    * @return array
    */
@@ -122,6 +118,7 @@ class Config
 
   /**
    * 检测配置是否存在
+   *
    * @access public
    * @param string $name 配置参数名（支持多级配置 .号分割）
    * @return bool 注意：如果检测配置值为null时也会返回false
