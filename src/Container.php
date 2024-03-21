@@ -505,6 +505,29 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
+   * 获取容器中的服务实例
+   *
+   * @param string $name
+   * @return mixed
+   */
+  public function __get(string $name)
+  {
+    return $this->make($name);
+  }
+
+  /**
+   * 绑定服务到容器
+   *
+   * @param string $name
+   * @param $value
+   * @return void
+   */
+  public function __set(string $name, $value): void
+  {
+    $this->bind($name, $value);
+  }
+
+  /**
    * 获取容器中实例的数量
    *
    * @return int
