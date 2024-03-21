@@ -1,7 +1,7 @@
 {
   "name": "viswoole/core",
   "description": "这是ViSwoole的核心构建库",
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
   "license": "proprietary",
   "authors": [
     {
