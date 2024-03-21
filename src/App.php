@@ -17,8 +17,9 @@ namespace ViSwoole\Core;
 /**
  * App基础容器类
  *
- * @property Config $config
- * @property Env $env
+ * @property Env $env 环境变量管理实例
+ * @property Config $config 配置管理实例
+ * @property Console $console 命令行管理实例
  */
 class App extends Container
 {
@@ -26,5 +27,6 @@ class App extends Container
     'app' => App::class,
     'env' => Env::class,
     'config' => Config::class,
+    'console' => Console::class
   ];
 }
