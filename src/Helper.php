@@ -48,7 +48,7 @@ if (!function_exists('container')) {
    */
   function container(): App
   {
-    return \app();
+    return app();
   }
 }
 if (!function_exists('env')) {
@@ -61,6 +61,19 @@ if (!function_exists('env')) {
    */
   function env(?string $key, mixed $default = null): mixed
   {
-    return \app('env')->get($key, $default);
+    return app('env')->get($key, $default);
+  }
+}
+if (!function_exists('config')) {
+  /**
+   * 获取配置
+   *
+   * @param string|null $name 配置名（支持二级 .号分割）
+   * @param mixed|null $default 默认值
+   * @return mixed|object
+   */
+  function config(string $name = null, mixed $default = null): mixed
+  {
+    return app('config')->get($name, $default);
   }
 }
