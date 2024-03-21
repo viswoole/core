@@ -29,12 +29,25 @@ if (!function_exists('getRootPath')) {
 }
 if (!function_exists('app')) {
   /**
-   * @param string|null $name 绑定的实例名称
+   * 获取服务或容器
+   *
+   * @param string|null $name 标识或接口
    * @return mixed
    */
   function app(?string $name = null): mixed
   {
     if (empty($name)) return App::single();
     return App::single()->get($name);
+  }
+}
+if (!function_exists('container')) {
+  /**
+   * 获取容器
+   *
+   * @return App
+   */
+  function container(): App
+  {
+    return \app();
   }
 }
