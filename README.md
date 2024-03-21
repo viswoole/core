@@ -1,6 +1,6 @@
 # ViSwoole-Core
 
-ViSwoole 核心文件
+ViSwoole框架核心库（开发中）
 
 ## 安装
 
