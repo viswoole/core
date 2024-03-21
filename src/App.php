@@ -16,12 +16,15 @@ declare (strict_types=1);
 namespace ViSwoole\Core;
 /**
  * App基础容器类
+ *
  * @property Config $config
+ * @property Env $env
  */
 class App extends Container
 {
   protected array $bindings = [
     'app' => App::class,
+    'env' => Env::class,
     'config' => Config::class,
   ];
 }

@@ -12,7 +12,10 @@
  */
 
 declare (strict_types=1);
+
 // 该文件定义了一些常用助手函数
+
+use ViSwoole\Core\App;
 
 if (!function_exists('getRootPath')) {
   /**
@@ -24,4 +27,14 @@ if (!function_exists('getRootPath')) {
     return defined('BASE_PATH') ? BASE_PATH : dirname(realpath(__DIR__), 3);
   }
 }
-
+if (!function_exists('app')) {
+  /**
+   * @param string|null $name 绑定的实例名称
+   * @return mixed
+   */
+  function app(?string $name = null): mixed
+  {
+    if (empty($name)) return App::single();
+    return App::single()->get($name);
+  }
+}
