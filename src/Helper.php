@@ -31,7 +31,7 @@ if (!function_exists('app')) {
   /**
    * 获取服务或容器
    *
-   * @param string|null $name 标识或接口
+   * @param string|null $name 标识或接口,不传返回容器实例
    * @return mixed
    */
   function app(?string $name = null): mixed
@@ -49,5 +49,18 @@ if (!function_exists('container')) {
   function container(): App
   {
     return \app();
+  }
+}
+if (!function_exists('env')) {
+  /**
+   * 获取环境变量的值
+   *
+   * @param string|null $key 环境变量名（支持二级 .号分割）
+   * @param mixed|null $default 默认值
+   * @return mixed
+   */
+  function env(?string $key, mixed $default = null): mixed
+  {
+    return \app('env')->get($key, $default);
   }
 }
