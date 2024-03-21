@@ -21,6 +21,7 @@ if (!function_exists('getRootPath')) {
    */
   function getRootPath(): string
   {
-    return dirname(realpath(__DIR__), 3);
+    return defined('BASE_PATH') ? BASE_PATH : dirname(realpath(__DIR__), 3);
   }
 }
+
