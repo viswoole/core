@@ -66,6 +66,10 @@ class Facade extends Command
       // 遍历并输出所有公共方法的名称
       foreach ($methods as $method) {
         $name = $method->getName();
+        // 如果是魔术方法则跳出本循环
+        if (str_starts_with($name, '__')) {
+          continue;
+        }
         $params = [];
         foreach ($method->getParameters() as $param) {
           $paramName = $param->getName();
@@ -96,7 +100,7 @@ class Facade extends Command
         $classDoc = " * $classDoc\n *\n";
       }
       $modifiedStr = str_replace('\\', '\\\\', $namespace);
-      $resultString = "/**\n$classDoc$docMethodBody\n *\n * 优化命令：php visual optimize:facade $modifiedStr\n */";
+      $resultString = "/**\n$classDoc$docMethodBody\n *\n * 优化命令：php viswoole optimize:facade $modifiedStr\n */";
       $this->write($file, $line, $resultString);
       $io->success("已将以下注释写入到{$file}文件中\n务必检查语法是否正确");
       echo $resultString . PHP_EOL;
@@ -132,6 +136,12 @@ class Facade extends Command
     return implode('|', $types);
   }
 
+  /**
+   * 解析方法
+   *
+   * @param array $data
+   * @return string
+   */
   protected function parse(array $data): string
   {
     $params = '';
@@ -147,6 +157,14 @@ class Facade extends Command
     return $str;
   }
 
+  /**
+   * 写入文件
+   *
+   * @param string $file
+   * @param int $line
+   * @param string $string
+   * @return void
+   */
   protected function write(string $file, int $line, string $string): void
   {
     // 读取文件内容
