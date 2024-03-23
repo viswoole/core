@@ -14,6 +14,7 @@
 declare (strict_types=1);
 
 namespace ViSwoole\Core;
+
 /**
  * 门面抽象类
  */
