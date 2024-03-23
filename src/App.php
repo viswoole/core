@@ -14,6 +14,7 @@
 declare (strict_types=1);
 
 namespace ViSwoole\Core;
+
 /**
  * App基础容器类
  *
