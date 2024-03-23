@@ -38,7 +38,7 @@ class Facade extends Command
     $this->addArgument(
       'namespace',
       InputArgument::REQUIRED,
-      'Class namespaces that need to be optimized'
+      'The Facade class needs to be optimized with a fully qualified name'
     );
   }
 
