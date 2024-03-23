@@ -22,8 +22,26 @@ use Symfony\Component\Console\Application;
  */
 class Console extends Application
 {
+  protected array $defaultCommands = [
+    \ViSwoole\Core\Command\Optimize\Facade::class
+  ];
+
   public function __construct(string $name = 'viswoole', string $version = '1.0.0')
   {
     parent::__construct($name, $version);
+    $this->loadCommand();
+  }
+
+  /**
+   * 加载命令
+   * @return void
+   */
+  protected function loadCommand(): void
+  {
+    $config = config('app.commands', []);
+    $config = array_merge($this->defaultCommands, $config);
+    foreach ($config as $class) {
+      $this->add(new $class());
+    }
   }
 }
