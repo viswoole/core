@@ -1,8 +1,13 @@
 {
   "name": "viswoole/core",
   "description": "这是ViSwoole的核心构建库",
+  "keywords": [
+    "framework",
+    "core",
+    "viswoole"
+  ],
   "minimum-stability": "dev",
-  "license": "proprietary",
+  "license": "Apache-2.0",
   "authors": [
     {
       "name": "zhuchonglin",
