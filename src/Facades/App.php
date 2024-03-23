@@ -16,7 +16,6 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Facades;
 
 use Override;
-use ViSwoole\Core\Container;
 use ViSwoole\Core\Facade;
 
 class App extends Facade
@@ -30,6 +29,6 @@ class App extends Facade
    */
   #[Override] protected static function getFacadeClass(): string
   {
-    return Container::class;
+    return App::class;
   }
 }
