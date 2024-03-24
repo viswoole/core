@@ -105,8 +105,10 @@ class App extends Container
    */
   public function getRootPath(): string
   {
-    return defined('BASE_PATH')
+    $path = defined('BASE_PATH')
       ? BASE_PATH
       : dirname(realpath(__DIR__), 4);
+    if (str_ends_with($path, '/')) $path = rtrim($path, '/');
+    return $path;
   }
 }
