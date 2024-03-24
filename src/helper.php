@@ -15,7 +15,10 @@ declare (strict_types=1);
 
 // 该文件定义了一些常用助手函数
 
-use ViSwoole\Core\App;
+
+use ViSwoole\Core\Facades\App;
+use ViSwoole\Core\Facades\Config;
+use ViSwoole\Core\Facades\Env;
 
 if (!function_exists('getRootPath')) {
   /**
@@ -24,7 +27,7 @@ if (!function_exists('getRootPath')) {
    */
   function getRootPath(): string
   {
-    return defined('BASE_PATH') ? BASE_PATH : dirname(realpath(__DIR__), 3);
+    return App::getRootPath();
   }
 }
 if (!function_exists('app')) {
@@ -37,7 +40,7 @@ if (!function_exists('app')) {
   function app(?string $name = null): mixed
   {
     if (empty($name)) return App::single();
-    return App::single()->get($name);
+    return App::get($name);
   }
 }
 if (!function_exists('container')) {
@@ -61,7 +64,7 @@ if (!function_exists('env')) {
    */
   function env(?string $key, mixed $default = null): mixed
   {
-    return app('env')->get($key, $default);
+    return Env::get($key, $default);
   }
 }
 if (!function_exists('config')) {
@@ -74,6 +77,6 @@ if (!function_exists('config')) {
    */
   function config(string $name = null, mixed $default = null): mixed
   {
-    return app('config')->get($name, $default);
+    return Config::get($name, $default);
   }
 }
