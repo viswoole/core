@@ -29,7 +29,13 @@ class BaseRuntimeException extends RuntimeException
    */
   final public function getErrorInfo(): array
   {
-    // TODO 待实现
-    return [];
+    return config('app.debug', false) ? [
+      'errCode' => $this->code,
+      'errMsg' => $this->message,
+      'trace' => $this->getTrace()
+    ] : [
+      'errCode' => $this->code,
+      'errMsg' => $this->message,
+    ];
   }
 }

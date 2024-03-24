@@ -33,7 +33,7 @@ class BaseException extends Exception
   protected array $data = [];
 
   public function __construct(
-    string     $message = "",
+    string     $message = '',
     int        $code = 0,
     int        $severity = E_ERROR,
     ?Throwable $previous = null
@@ -60,8 +60,17 @@ class BaseException extends Exception
    */
   final public function getErrorInfo(): array
   {
-    // TODO 待实现
-    return [];
+    return config('app.debug', false) ? [
+      'severity' => $this->severity,
+      'errCode' => $this->code,
+      'errMsg' => $this->message,
+      'data' => $this->data,//额外的debug数据
+      'trace' => $this->getTrace()
+    ] : [
+      'errCode' => $this->code,
+      'errMsg' => $this->message,
+      'data' => $this->data//额外的debug数据
+    ];
   }
 
   /**
