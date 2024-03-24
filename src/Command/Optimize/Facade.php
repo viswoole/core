@@ -76,7 +76,11 @@ class Facade extends Command
 
           $paramType = (string)$param->getType();
           $paramType = $this->formatType($paramType, 'mixed');
-          $params[$paramName] = $paramType;
+          $params[$paramName] = [
+            'type' => $paramType,
+            'default' => $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null,
+            'isDefaultValueAvailable' => $param->isDefaultValueAvailable()
+          ];
         }
         $doc = $method->getDocComment();
         // 如果注释不存在，则返回空字符串
@@ -145,8 +149,9 @@ class Facade extends Command
   protected function parse(array $data): string
   {
     $params = '';
-    foreach ($data['params'] as $key => $type) {
-      $params .= " $type $$key,";
+    foreach ($data['params'] as $key => $structure) {
+      $params .= " {$structure['type']} $$key";
+      $params .= $structure['isDefaultValueAvailable'] ? " {$structure['default']}," : ',';
     }
     $params = ltrim($params, ' ');
     $params = rtrim($params, ',');
