@@ -33,12 +33,13 @@ use ViSwoole\Core\Facade;
  * @method static mixed invokeClass(string $class, array $vars = []) 调用反射执行类的实例化，支持依赖注入。
  * @method static void resolving(Closure|string $abstract, ?Closure $callback = null) 注册一个解析事件回调
  * @method static void removeCallback(Closure|string $abstract, ?Closure $callback = null) 删除解析事件回调
- * @method static object get(string $id) 获取容器中的对象实例
+ * @method static mixed get(string $id) 获取容器中的对象实例
  * @method static bool hasBind(string $abstract) 判断标识或接口是否已经绑定
  * @method static bool has(string $id) 通过标识或接口类名判断是否已经绑定或注册单例
  * @method static bool exists(string $abstract) 判断容器中是否注册单实例
  * @method static void remove(string $abstract) 删除容器中的服务实例
  * @method static int count() 获取容器中实例的数量
+ * @method static string getRootPath() 获取项目根路径
  *
  * 优化命令：php viswoole optimize:facade ViSwoole\\Core\\Facades\\App
  */
