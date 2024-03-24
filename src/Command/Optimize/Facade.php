@@ -76,9 +76,12 @@ class Facade extends Command
 
           $paramType = (string)$param->getType();
           $paramType = $this->formatType($paramType, 'mixed');
+          $default = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
           $params[$paramName] = [
             'type' => $paramType,
-            'default' => $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null,
+            'default' => !is_string($default) ? json_encode(
+              $default, JSON_UNESCAPED_UNICODE
+            ) : $default,
             'isDefaultValueAvailable' => $param->isDefaultValueAvailable()
           ];
         }
@@ -151,7 +154,7 @@ class Facade extends Command
     $params = '';
     foreach ($data['params'] as $key => $structure) {
       $params .= " {$structure['type']} $$key";
-      $params .= $structure['isDefaultValueAvailable'] ? " {$structure['default']}," : ',';
+      $params .= $structure['isDefaultValueAvailable'] ? " = {$structure['default']}," : ',';
     }
     $params = ltrim($params, ' ');
     $params = rtrim($params, ',');
