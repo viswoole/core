@@ -40,7 +40,7 @@ class Event
    */
   protected array $listens = [];
 
-  public function __construct()
+  private function __construct()
   {
     $this->initListen();
   }
@@ -103,6 +103,18 @@ class Event
   }
 
   /**
+   * 自定义实例化
+   */
+  public static function __make(): static
+  {
+    static $instance = null;
+    if ($instance === null) {
+      $instance = new static();
+    }
+    return $instance;
+  }
+
+  /**
    * 触发事件
    *
    * @access public
@@ -148,6 +160,7 @@ class Event
   /**
    * 清除所有事件监听
    *
+   * @access public
    * @return void
    */
   public function offAll(): void
