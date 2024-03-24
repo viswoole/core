@@ -19,10 +19,6 @@ use Closure;
 
 /**
  * 系统服务基础类
- *
- * @method void register() 该方法会在服务注册时调用，在该方法内通过$this->app->bind('服务名', '服务类名');
- * 来绑定服务
- * @method void boot() 该方法是在所有服务都绑定完毕过后调用，可以在此方法内注册路由，监听事件等
  */
 abstract class ServiceProvider
 {
@@ -32,6 +28,24 @@ abstract class ServiceProvider
   protected array $bindings = [];
 
   public function __construct(protected App $app)
+  {
+  }
+
+  /**
+   * 该方法是在所有系统服务都绑定完毕过后调用，可以在此方法内注册路由，监听事件等
+   *
+   * @return void
+   */
+  public function boot(): void
+  {
+  }
+
+  /**
+   * 该方法会在服务注册时调用，在该方法内通过$this->app->bind('服务名', '服务类名');
+   *
+   * @return void
+   */
+  public function register(): void
   {
   }
 
