@@ -25,7 +25,7 @@ abstract class ServiceProvider
   /**
    * @var array 重写该属性，可批量绑定服务['tag'=>server::class]
    */
-  protected array $bindings = [];
+  public array $bindings = [];
 
   public function __construct(protected App $app)
   {
