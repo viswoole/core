@@ -52,7 +52,7 @@ class Event
   private function initListen(): void
   {
     $defaultListenConfigPath = getRootPath() . '/config/event/listen.php';
-    if ($defaultListenConfigPath) {
+    if (is_file($defaultListenConfigPath)) {
       $listen = include_once $defaultListenConfigPath;
       $listen = is_array($listen) ? $listen : [];
       foreach ($listen as $event => $handle) {
