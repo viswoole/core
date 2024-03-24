@@ -37,7 +37,7 @@ use ViSwoole\Core\Exception\MethodNotFoundException;
 /**
  * 容器与依赖注入类
  */
-class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, Countable
+abstract class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, Countable
 {
   /**
    * 容器对象实例
