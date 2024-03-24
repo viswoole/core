@@ -21,6 +21,7 @@ namespace ViSwoole\Core;
  * @property Env $env 环境变量管理实例
  * @property Config $config 配置管理实例
  * @property Console $console 命令行管理实例
+ * @property Event $event 全局事件管理器
  */
 class App extends Container
 {
@@ -28,7 +29,8 @@ class App extends Container
     'app' => App::class,
     'env' => Env::class,
     'config' => Config::class,
-    'console' => Console::class
+    'console' => Console::class,
+    'event' => Event::class
   ];
   /**
    * @var ServiceProvider[] 服务列表
