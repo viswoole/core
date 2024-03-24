@@ -18,6 +18,15 @@ namespace ViSwoole\Core\Facades;
 use Override;
 use ViSwoole\Core\Facade;
 
+/**
+ * Env管理类
+ *
+ * @method static void set(array|string $env, mixed $value) 设置环境变量值
+ * @method static bool has(string $name) 检测是否存在环境变量
+ * @method static mixed get(?string $name, mixed $default) 获取环境变量值
+ *
+ * 优化命令：php viswoole optimize:facade ViSwoole\\Core\\Facades\\Env
+ */
 class Env extends Facade
 {
 
