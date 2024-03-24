@@ -16,6 +16,7 @@ declare (strict_types=1);
 namespace ViSwoole\Core;
 
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
 
 /**
  * 命令行处理程序
@@ -41,7 +42,19 @@ class Console extends Application
     $config = config('app.commands', []);
     $config = array_merge($this->defaultCommands, $config);
     foreach ($config as $class) {
-      $this->add(new $class());
+      $this->add(\ViSwoole\Core\Facades\App::invokeClass($class));
     }
+  }
+
+  /**
+   * 添加一个命令行处理程序
+   *
+   * @access public
+   * @param Command $command
+   * @return Command|null
+   */
+  public function addCommand(Command $command): ?Command
+  {
+    return $this->add($command);
   }
 }
