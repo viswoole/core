@@ -297,10 +297,10 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @access public
    * @param string $class
    * @param array $vars
-   * @return object
+   * @return mixed
    * @throws ContainerException
    */
-  public function invokeClass(string $class, array $vars = []): object
+  public function invokeClass(string $class, array $vars = []): mixed
   {
     if (!class_exists($class)) throw new ClassNotFoundException(
       "需要反射执行的类{$class}不存在", $class
