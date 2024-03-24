@@ -429,7 +429,7 @@ abstract class Container implements ContainerInterface, ArrayAccess, IteratorAgg
    * @param string $id 标识或类完全限定名称
    * @return object
    */
-  #[Override] public function get(string $id): object
+  #[Override] public function get(string $id): mixed
   {
     return $this->make($id);
   }
