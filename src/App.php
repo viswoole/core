@@ -30,4 +30,83 @@ class App extends Container
     'config' => Config::class,
     'console' => Console::class
   ];
+  /**
+   * @var ServiceProvider[] 服务列表
+   */
+  protected array $services = [];
+  /**
+   * @var bool 是否开启调试模式
+   */
+  protected bool $debug;
+
+  public function __construct()
+  {
+    parent::__construct();
+    $this->debug = $this->config->get('app.debug', false);
+    $this->initialize();
+  }
+
+  /**
+   * 初始化应用
+   *
+   * @return void
+   */
+  protected function initialize(): void
+  {
+    date_default_timezone_set($this->config->get('app.default_timezone', 'Asia/Shanghai'));
+    $this->load();
+  }
+
+  /**
+   * 加载配置
+   *
+   * @return void
+   */
+  protected function load(): void
+  {
+    // 注册服务
+    $services = $this->config->get('app.services', []);
+    foreach ($services as $service) $this->registerService($service);
+    // 启动服务
+    $this->bootService();
+  }
+
+  /**
+   * 注册服务
+   * @access public
+   * @param ServiceProvider|string $service 服务
+   * @return void
+   */
+  protected function registerService(ServiceProvider|string $service): void
+  {
+    if (is_string($service)) $service = new $service($this);
+    $service->register();
+    if (property_exists($service, 'bindings')) {
+      $this->binds($service->bindings);
+    }
+    $this->services[] = $service;
+  }
+
+  /**
+   * 初始化服务
+   *
+   * @return void
+   */
+  protected function bootService(): void
+  {
+    foreach ($this->services as $service) $service->boot();
+  }
+
+  /**
+   * 获取项目根路径
+   *
+   * @access public
+   * @return string
+   */
+  public function getRootPath(): string
+  {
+    return defined('BASE_PATH')
+      ? BASE_PATH
+      : dirname(realpath(__DIR__), 4);
+  }
 }
