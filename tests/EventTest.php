@@ -15,30 +15,30 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Tests;
 
+use Closure;
 use PHPUnit\Framework\TestCase;
+use ViSwoole\Core\Facades\App;
 use ViSwoole\Core\Facades\Event;
 
 class EventTest extends TestCase
 {
+  public Closure $callback;
+  public bool $callbackStatus = false;
+
   public function testOff()
   {
     $status = false;
-    Event::on('test', function () use (&$status) {
-      $status = true;
-    });
+    Event::on('test', $this->callback);
     Event::off('test');
     Event::emit('test');
-    static::assertFalse($status);
+    static::assertFalse($this->callbackStatus);
   }
 
   public function testOn()
   {
-    $status = false;
-    Event::on('test', function () use (&$status) {
-      $status = true;
-    });
+    Event::on('test', $this->callback);
     Event::emit('test');
-    static::assertTrue($status);
+    static::assertTrue($this->callbackStatus);
   }
 
   public function testEmit()
@@ -49,12 +49,18 @@ class EventTest extends TestCase
 
   public function testOffAll()
   {
-    $status = false;
-    Event::on('test', function () use (&$status) {
-      $status = true;
-    });
+    Event::on('test', $this->callback);
     Event::offAll();
     Event::emit('test');
-    static::assertFalse($status);
+    static::assertFalse($this->callbackStatus);
+  }
+
+  protected function setUp(): void
+  {
+    parent::setUp();
+    App::single();
+    $this->callback = function () {
+      $this->callbackStatus = true;
+    };
   }
 }
