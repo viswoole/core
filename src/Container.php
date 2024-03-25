@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpClassHasTooManyDeclaredMembersInspection */
 /*
  *  +----------------------------------------------------------------------
  *  | ViSwoole [基于swoole开发的高性能快速开发框架]
@@ -37,7 +37,7 @@ use ViSwoole\Core\Exception\MethodNotFoundException;
 /**
  * 容器与依赖注入类
  */
-abstract class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, Countable
+class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, Countable
 {
   /**
    * 容器对象实例
