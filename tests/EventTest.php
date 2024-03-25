@@ -27,7 +27,6 @@ class EventTest extends TestCase
 
   public function testOff()
   {
-    $status = false;
     Event::on('test', $this->callback);
     Event::off('test');
     Event::emit('test');
