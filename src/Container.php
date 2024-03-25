@@ -322,7 +322,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       if ($method->isPublic() && $method->isStatic()) {
         $args = $this->bindParams($method, $vars);
         try {
-          $instance = $method->invokeArgs(...$args);
+          $instance = $method->invokeArgs(null, $args);
           if (!($instance instanceof $class)) {
             throw new ContainerException(
               "$class::__make方法返回的实例必须是{$class}类的实例"
