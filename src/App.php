@@ -30,7 +30,8 @@ class App extends Container
     'env' => Env::class,
     'config' => Config::class,
     'console' => Console::class,
-    'event' => Event::class
+    'event' => Event::class,
+    'validate' => Validate::class
   ];
   /**
    * @var ServiceProvider[] 服务列表
