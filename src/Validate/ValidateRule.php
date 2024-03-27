@@ -30,7 +30,7 @@ class ValidateRule
    *
    * @var array
    */
-  protected const array DEFAULT_TYPE_MSG = [
+  protected static array $DEFAULT_MSG = [
     'require' => '{:field}不能为空',
     'number' => '{:field}必须是数字',
     'string' => '{:field}必须是字符串',
@@ -83,7 +83,7 @@ class ValidateRule
    */
   public static function getError(string $filter): string
   {
-    return self::DEFAULT_TYPE_MSG[$filter] ?? '{:field}不符合规则';
+    return self::$DEFAULT_MSG[$filter] ?? '{:field}不符合规则';
   }
 
   /**
@@ -600,7 +600,7 @@ class ValidateRule
   ): void
   {
     self::$rules[$ruleName] = $handle;
-    self::DEFAULT_TYPE_MSG[$ruleName] = $message;
+    self::$DEFAULT_MSG[$ruleName] = $message;
   }
 
   /**

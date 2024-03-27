@@ -26,12 +26,21 @@ interface ValidateInterface
   /**
    * 数据验证
    *
+   * Example usage:
+   *  ```
+   *  try{
+   *    Validate::rule('name', 'require|max:25')->check(['name' => 'viswoole']);
+   *  }catch(ValidateException $e){
+   *    echo $e->getMessage(); // 如果验证失败则会抛出验证异常，通过$e->getMessage可以捕获异常提示信息
+   *  }
+   *  ```
    * @access public
    * @param array $data 数据
-   * @return bool|array
-   * @throws ValidateException
+   * @param bool $batch 是否批量验证
+   * @return bool
+   * @throws ValidateException 验证失败会抛出异常
    */
-  public function check(array $data): bool|array;
+  public function check(array $data): bool;
 
   /**
    * 设置验证规则

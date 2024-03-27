@@ -34,11 +34,6 @@ class Validate implements ValidateInterface
    */
   protected array $rules;
   /**
-   * @var bool 是否批量验证
-   */
-  protected bool $batch = false;
-
-  /**
    * @var array 场景需要移除的验证规则
    */
   private array $remove = [];
@@ -68,10 +63,11 @@ class Validate implements ValidateInterface
    *  ```
    * @access public
    * @param array $data 数据
+   * @param bool $batch 是否批量验证
    * @return bool
-   * @throws ValidateException
+   * @throws ValidateException 验证失败会抛出异常
    */
-  #[Override] public function check(array $data): bool
+  #[Override] public function check(array $data, bool $batch = false): bool
   {
     if (!isset($this->rules)) throw new ValidateException('验证规则不能为空');
     if (isset($this->currentScene)) $this->{$this->currentScene}();
@@ -100,7 +96,7 @@ class Validate implements ValidateInterface
         }
         // 如果非批量验证则抛出异常
         if (!$result) {
-          if (!$this->batch) {
+          if (!$batch) {
             throw new ValidateException($message);
           } else {
             $results[$field] = $message;
@@ -117,7 +113,7 @@ class Validate implements ValidateInterface
               $filter,
               ValidateRule::getError($validate)
             );
-            if (!$this->batch) {
+            if (!$batch) {
               throw new ValidateException($message);
             } else {
               $results[$field] = $message;
@@ -252,7 +248,7 @@ class Validate implements ValidateInterface
       $parsedRule = [];
       foreach ($rules as $key => $rule) {
         if (is_array($rule)) {
-          // 如果是用数组定义的验证规则，则递归解析
+          // 参数数组
           $parsedRule[$key] = $rule;
         } elseif (is_int($key)) {
           if (str_contains($rule, ':')) {
