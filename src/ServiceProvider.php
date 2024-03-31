@@ -36,18 +36,15 @@ abstract class ServiceProvider
    *
    * @return void
    */
-  public function boot(): void
-  {
-  }
+  abstract public function boot(): void;
+
 
   /**
    * 该方法会在服务注册时调用，在该方法内通过$this->app->bind('服务名', '服务类名');
    *
    * @return void
    */
-  public function register(): void
-  {
-  }
+  abstract public function register(): void;
 
   /**
    * 加载路由
