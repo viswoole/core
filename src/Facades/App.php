@@ -40,6 +40,7 @@ use ViSwoole\Core\Facade;
  * @method static void remove(string $abstract) 删除容器中的服务实例
  * @method static int count() 获取容器中实例的数量
  * @method static string getRootPath() 获取项目根路径
+ * @method static string getVendorPath() 获取vendor路径
  *
  * 优化命令：php viswoole optimize:facade ViSwoole\\Core\\Facades\\App
  */
