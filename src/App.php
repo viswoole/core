@@ -69,26 +69,56 @@ class App extends Container
   protected function load(): void
   {
     // 注册服务
-    $services = $this->config->get('app.services', []);
-    foreach ($services as $service) $this->registerService($service);
+    $this->registerService();
     // 启动服务
     $this->bootService();
   }
 
   /**
    * 注册服务
-   * @access public
-   * @param ServiceProvider|string $service 服务
+   *
+   * @access protected
    * @return void
    */
-  protected function registerService(ServiceProvider|string $service): void
+  protected function registerService(): void
   {
-    if (is_string($service)) $service = new $service($this);
-    $service->register();
-    if (property_exists($service, 'bindings')) {
-      $this->binds($service->bindings);
+    $services = $this->config->get('app.services', []);
+    $depPath = $this->getVendorPath() . '/services.php';
+    // 依赖包注册的服务
+    $dependentServices = is_file($depPath) ? require $depPath : [];
+    $services = array_merge($services, $dependentServices);
+    // 遍历服务绑定进容器
+    foreach ($services as $service) {
+      if (is_string($service)) $service = new $service($this);
+      $service->register();
+      if (property_exists($service, 'bindings')) $this->binds($service->bindings);
+      $this->services[] = $service;
     }
-    $this->services[] = $service;
+  }
+
+  /**
+   * 获取vendor路径
+   *
+   * @return string
+   */
+  public function getVendorPath(): string
+  {
+    return $this->getRootPath() . '/vendor';
+  }
+
+  /**
+   * 获取项目根路径
+   *
+   * @access public
+   * @return string
+   */
+  public function getRootPath(): string
+  {
+    $path = defined('BASE_PATH')
+      ? BASE_PATH
+      : dirname(realpath(__DIR__), 4);
+    if (str_ends_with($path, '/')) $path = rtrim($path, '/');
+    return $path;
   }
 
   /**
@@ -107,20 +137,5 @@ class App extends Container
   public function __destruct()
   {
     $this->event->emit('AppDestroyed');
-  }
-
-  /**
-   * 获取项目根路径
-   *
-   * @access public
-   * @return string
-   */
-  public function getRootPath(): string
-  {
-    $path = defined('BASE_PATH')
-      ? BASE_PATH
-      : dirname(realpath(__DIR__), 4);
-    if (str_ends_with($path, '/')) $path = rtrim($path, '/');
-    return $path;
   }
 }
