@@ -38,7 +38,7 @@
   },
   "scripts": {
     "post-autoload-dump": [
-      "@php viswoole service:discover"
+      "cd ../../.. && php viswoole service:discover"
     ]
   }
 }
