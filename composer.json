@@ -35,5 +35,10 @@
     "psr-4": {
       "ViSwoole\\Core\\Tests\\": "tests"
     }
+  },
+  "scripts": {
+    "post-autoload-dump": [
+      "@php viswoole service:discover"
+    ]
   }
 }
