@@ -53,11 +53,16 @@ class ServiceDiscover extends Command
         ) . PHP_EOL
         . 'declare (strict_types = 1);' . PHP_EOL;
 
-      $content = '<?php ' . PHP_EOL . $header . 'return ' . var_export($services, true) . ';';
+      $content = 'return [' . PHP_EOL;
+      foreach ($services as $service) {
+        $content .= $service . ',' . PHP_EOL;
+      }
+      $content = rtrim($content, ',' . PHP_EOL) . PHP_EOL . '];';
+      $content = '<?php ' . PHP_EOL . $header . $content;
+      $enterPath = getRootPath() . '/vendor/services.php';
+      file_put_contents($enterPath, $content);
 
-      file_put_contents(getRootPath() . 'vendor/services.php', $content);
-
-      $io->success('已在 vendor/services.php 中生成服务注册文件');
+      $io->success("已在 $enterPath 中生成服务注册文件");
     }
     return Command::SUCCESS;
   }
