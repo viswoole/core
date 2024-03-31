@@ -48,21 +48,22 @@ class ServiceDiscover extends Command
         }
       }
 
-      $header = '// 此文件为自service:discover命令自动生成的服务注册文件:' . date(
+      $header = '// 此文件为由service:discover命令处理程序自动生成的服务注册文件:' . date(
           'Y-m-d H:i:s'
         ) . PHP_EOL
-        . 'declare (strict_types = 1);' . PHP_EOL;
+        . 'declare (strict_types=1);' . PHP_EOL . PHP_EOL;
 
       $content = 'return [' . PHP_EOL;
       foreach ($services as $service) {
-        $content .= $service . ',' . PHP_EOL;
+        $service = str_replace("'", '"', var_export($service, true));
+        $content .= "  $service," . PHP_EOL;
       }
       $content = rtrim($content, ',' . PHP_EOL) . PHP_EOL . '];';
-      $content = '<?php ' . PHP_EOL . $header . $content;
+      $content = '<?php' . PHP_EOL . $header . $content;
       $enterPath = getRootPath() . '/vendor/services.php';
       file_put_contents($enterPath, $content);
-
-      $io->success("已在 $enterPath 中生成服务注册文件");
+      $serviceCount = count($services);
+      $io->success("已生成服务注册文件 $enterPath 共计发现 $serviceCount 个服务");
     }
     return Command::SUCCESS;
   }
