@@ -41,7 +41,7 @@
       "cd ../../.. && php viswoole service:discover"
     ],
     "post-update-cmd": [
-      "@php pwd"
+      "pwd"
     ]
   }
 }
