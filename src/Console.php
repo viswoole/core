@@ -17,6 +17,7 @@ namespace ViSwoole\Core;
 
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use ViSwoole\Core\Command\ServiceDiscover;
 
 /**
  * 命令行处理程序
@@ -24,7 +25,8 @@ use Symfony\Component\Console\Command\Command;
 class Console extends Application
 {
   protected array $defaultCommands = [
-    \ViSwoole\Core\Command\Optimize\Facade::class
+    \ViSwoole\Core\Command\Optimize\Facade::class,
+    ServiceDiscover::class
   ];
 
   public function __construct(string $name = 'viswoole', string $version = '1.0.0')
