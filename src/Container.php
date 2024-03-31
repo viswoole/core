@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpClassHasTooManyDeclaredMembersInspection */
 /*
  *  +----------------------------------------------------------------------
  *  | ViSwoole [基于swoole开发的高性能快速开发框架]
@@ -69,18 +69,14 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
-   * 注册服务到容器中,支持批量注册。
+   * 绑定服务到容器中
    *
-   * @param string|array $abstract 服务标识或接口名称
+   * @param string $abstract 服务标识或接口名称
    * @param mixed|Countable|string $concrete 服务的具体实现类、闭包函数、对象实例、其他服务标识
    */
-  public function bind(string|array $abstract, mixed $concrete): void
+  public function bind(string $abstract, mixed $concrete): void
   {
-    if (is_array($abstract)) {
-      foreach ($abstract as $key => $val) {
-        $this->bind($key, $val);
-      }
-    } elseif ($concrete instanceof Closure) {
+    if ($concrete instanceof Closure) {
       $this->bindings[$abstract] = $concrete;
     } elseif (is_object($concrete)) {
       // 如果传入的$concrete是对象实例，则将其缓存，并映射其实例名称
@@ -114,6 +110,19 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   {
     if (!isset(self::$instance)) new static();
     return self::$instance;
+  }
+
+  /**
+   * 批量绑定服务到容器中
+   *
+   * @access public
+   * @param array $binds
+   */
+  public function binds(array $binds): void
+  {
+    foreach ($binds as $key => $val) {
+      $this->bind($key, $val);
+    }
   }
 
   /**
@@ -297,10 +306,10 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @access public
    * @param string $class
    * @param array $vars
-   * @return object
+   * @return mixed
    * @throws ContainerException
    */
-  public function invokeClass(string $class, array $vars = []): object
+  public function invokeClass(string $class, array $vars = []): mixed
   {
     if (!class_exists($class)) throw new ClassNotFoundException(
       "需要反射执行的类{$class}不存在", $class
@@ -313,7 +322,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       if ($method->isPublic() && $method->isStatic()) {
         $args = $this->bindParams($method, $vars);
         try {
-          $instance = $method->invokeArgs(...$args);
+          $instance = $method->invokeArgs(null, $args);
           if (!($instance instanceof $class)) {
             throw new ContainerException(
               "$class::__make方法返回的实例必须是{$class}类的实例"
@@ -420,7 +429,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @param string $id 标识或类完全限定名称
    * @return object
    */
-  #[Override] public function get(string $id): object
+  #[Override] public function get(string $id): mixed
   {
     return $this->make($id);
   }

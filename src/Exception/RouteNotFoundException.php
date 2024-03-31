@@ -15,27 +15,18 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Exception;
 
-use RuntimeException;
+use Throwable;
 
 /**
- * 运行时异常基类
+ * 路由不存在异常
  */
-class BaseRuntimeException extends RuntimeException
+class RouteNotFoundException extends HttpException
 {
-  /**
-   * 获取错误信息
-   * @access public
-   * @return array
-   */
-  final public function getErrorInfo(): array
+  public function __construct(
+    string    $message = 'routing resource not found',
+    Throwable $previous = null
+  )
   {
-    return config('app.debug', false) ? [
-      'errCode' => $this->code,
-      'errMsg' => $this->message,
-      'trace' => $this->getTrace()
-    ] : [
-      'errCode' => $this->code,
-      'errMsg' => $this->message,
-    ];
+    parent::__construct(message: $message, httpCode: 404, previous: $previous, code: 404);
   }
 }

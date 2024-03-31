@@ -14,28 +14,31 @@
 declare (strict_types=1);
 
 namespace ViSwoole\Core\Exception;
-
-use RuntimeException;
-
 /**
- * 运行时异常基类
+ * 数据验证异常
  */
-class BaseRuntimeException extends RuntimeException
+class ValidateException extends HttpException
 {
   /**
-   * 获取错误信息
-   * @access public
-   * @return array
+   * 验证错误信息
+   * @var string|array
    */
-  final public function getErrorInfo(): array
+  protected string|array $error;
+
+  public function __construct(string|array $error)
   {
-    return config('app.debug', false) ? [
-      'errCode' => $this->code,
-      'errMsg' => $this->message,
-      'trace' => $this->getTrace()
-    ] : [
-      'errCode' => $this->code,
-      'errMsg' => $this->message,
-    ];
+    $this->error = $error;
+    $message = is_array($error) ? implode(PHP_EOL, $error) : $error;
+    parent::__construct(message: $message);
+  }
+
+  /**
+   * 获取验证错误信息
+   * @access public
+   * @return array|string
+   */
+  public function getError(): array|string
+  {
+    return $this->error;
   }
 }

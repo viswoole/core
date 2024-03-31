@@ -13,29 +13,31 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Exception;
+namespace ViSwoole\Core\Facades;
 
-use RuntimeException;
+use Override;
+use ViSwoole\Core\Facade;
 
 /**
- * 运行时异常基类
+ * Env管理类
+ *
+ * @method static void set(array|string $env, mixed $value) 设置环境变量值
+ * @method static bool has(string $name) 检测是否存在环境变量
+ * @method static mixed get(?string $name, mixed $default) 获取环境变量值
+ *
+ * 优化命令：php viswoole optimize:facade ViSwoole\\Core\\Facades\\Env
  */
-class BaseRuntimeException extends RuntimeException
+class Env extends Facade
 {
+
   /**
-   * 获取错误信息
-   * @access public
-   * @return array
+   * 获取当前Facade对应类名
+   *
+   * @access protected
+   * @return string
    */
-  final public function getErrorInfo(): array
+  #[Override] protected static function getFacadeClass(): string
   {
-    return config('app.debug', false) ? [
-      'errCode' => $this->code,
-      'errMsg' => $this->message,
-      'trace' => $this->getTrace()
-    ] : [
-      'errCode' => $this->code,
-      'errMsg' => $this->message,
-    ];
+    return \ViSwoole\Core\Env::class;
   }
 }
