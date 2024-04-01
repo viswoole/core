@@ -131,7 +131,13 @@ class Output
       $trace = '';
     }
     $date = date('c');
-    if (array_key_exists($color, self::COLORS)) $color = self::LEVEL_COLOR[$color];
-    echo "{$color}[$date]: $message$trace" . self::COLORS['DEFAULT'];
+    if (array_key_exists($color, self::COLORS)) {
+      $color = self::LEVEL_COLOR[$color];
+    } else {
+      $console_color_pattern = '/^(\033)\[[0-9;]+m$/';
+      $isColor = preg_match($console_color_pattern, $color);
+      $color = $isColor ? $color : self::COLORS['DEFAULT'];
+    }
+    echo "{$color}[$date]: $message$trace" . PHP_EOL . self::COLORS['DEFAULT'];
   }
 }
