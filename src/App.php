@@ -22,6 +22,7 @@ namespace ViSwoole\Core;
  * @property Config $config 配置管理实例
  * @property Console $console 命令行管理实例
  * @property Event $event 全局事件管理器
+ * @property Validate $validate 验证器
  */
 class App extends Container
 {
