@@ -25,7 +25,7 @@ use ViSwoole\Core\Facade;
  *
  * @method static void bind(string $abstract, mixed $concrete) 绑定服务到容器中, 支持批量注册。
  * @method static void binds(array $binds) 批量绑定服务到容器中。
- * @method static \ViSwoole\Core\Container|\static single() 获取容器单实例
+ * @method static \ViSwoole\Core\Container factory() 获取容器单实例
  * @method static mixed invokeFunction(Closure|string $function, array $vars = []) 执行闭包函数，支持依赖参数注入。
  * @method static mixed make(string $abstract, array $vars = []) 获取容器中的服务，已经存在则直接获取。
  * @method static mixed invoke(callable|string $callable, array $vars = []) 调用反射执行函数、匿名函数、以及类或方法，支持依赖注入。
