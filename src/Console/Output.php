@@ -13,7 +13,7 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Common;
+namespace ViSwoole\Core\Console;
 /**
  * 输出类，使用该类可轻松打印各种颜色的消息到控制台。
  *

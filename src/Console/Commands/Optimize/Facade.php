@@ -13,7 +13,7 @@
 /** @noinspection PhpMissingParentCallCommonInspection */
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Command\Optimize;
+namespace ViSwoole\Core\Console\Commands\Optimize;
 
 use Override;
 use ReflectionClass;

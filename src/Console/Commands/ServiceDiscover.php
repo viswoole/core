@@ -13,7 +13,7 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Command;
+namespace ViSwoole\Core\Console\Commands;
 
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;

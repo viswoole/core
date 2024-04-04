@@ -17,10 +17,10 @@ namespace ViSwoole\Core;
 
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
-use ViSwoole\Core\Command\server\ServerClose;
-use ViSwoole\Core\Command\server\ServerReload;
-use ViSwoole\Core\Command\server\ServerStart;
-use ViSwoole\Core\Command\ServiceDiscover;
+use ViSwoole\Core\Console\Commands\server\ServerClose;
+use ViSwoole\Core\Console\Commands\server\ServerReload;
+use ViSwoole\Core\Console\Commands\server\ServerStart;
+use ViSwoole\Core\Console\Commands\ServiceDiscover;
 
 /**
  * 命令行处理程序
@@ -28,7 +28,7 @@ use ViSwoole\Core\Command\ServiceDiscover;
 class Console extends Application
 {
   protected array $defaultCommands = [
-    \ViSwoole\Core\Command\Optimize\Facade::class,
+    Console\Commands\Optimize\Facade::class,
     ServiceDiscover::class,
     ServerStart::class,
     ServerClose::class,

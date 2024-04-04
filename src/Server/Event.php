@@ -16,7 +16,7 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Server;
 
 use Swoole\Server;
-use ViSwoole\Core\Common\Output;
+use ViSwoole\Core\Console\Output;
 
 class Event
 {
