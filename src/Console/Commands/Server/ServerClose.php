@@ -13,55 +13,48 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Console\Commands\server;
+namespace ViSwoole\Core\Console\Commands\Server;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
 use ViSwoole\Core\Server\ServerAction;
 
 /**
- * 重启服务
+ * 关闭服务
  */
 #[AsCommand(
-  name       : 'server:reload',
-  description: 'Reload a server or task.',
+  name       : 'server:close',
+  description: 'Close a server.',
   hidden     : false
 )]
-class ServerReload extends Command
+class ServerClose extends Command
 {
   protected function configure(): void
   {
     $this->addArgument(
-      'service',
+      'server',
       InputArgument::REQUIRED,
-      'Name of the service to reload'
-    );
-    $this->addOption(
-      'task',
-      't',
-      InputOption::VALUE_NONE,
-      'Reload only the task process'
+      'Name of the server to close'
     );
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int
   {
-    $service = $input->getArgument('service');
-    $taskReload = $input->getOption('task');
+    $service = $input->getArgument('server');
     $io = new SymfonyStyle($input, $output);
     try {
-      ServerAction::reload($service, $taskReload);
+      ServerAction::close($service);
     } catch (Throwable $e) {
       $io->error($e->getMessage());
       return Command::FAILURE;
     }
-    $io->success("{$service}服务重启成功");
+    $io->success("{$service}服务停止运行成功");
     return Command::SUCCESS;
   }
 }
+

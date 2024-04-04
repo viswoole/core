@@ -17,9 +17,9 @@ namespace ViSwoole\Core;
 
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
-use ViSwoole\Core\Console\Commands\server\ServerClose;
-use ViSwoole\Core\Console\Commands\server\ServerReload;
-use ViSwoole\Core\Console\Commands\server\ServerStart;
+use ViSwoole\Core\Console\Commands\Server\ServerClose;
+use ViSwoole\Core\Console\Commands\Server\ServerReload;
+use ViSwoole\Core\Console\Commands\Server\ServerStart;
 use ViSwoole\Core\Console\Commands\ServiceDiscover;
 
 /**
