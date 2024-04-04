@@ -56,6 +56,7 @@ class Output
   /**
    * 打印变量
    *
+   * @access public
    * @param mixed $data 变量内容
    * @param string $color 颜色
    * @param int $backtrace 1为输出调用源，0为不输出
