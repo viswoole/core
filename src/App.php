@@ -23,6 +23,7 @@ namespace ViSwoole\Core;
  * @property Console $console 命令行管理实例
  * @property Event $event 全局事件管理器
  * @property Validate $validate 验证器
+ * @property Server $server 服务管理实例
  */
 class App extends Container
 {
@@ -32,7 +33,8 @@ class App extends Container
     'config' => Config::class,
     'console' => Console::class,
     'event' => Event::class,
-    'validate' => Validate::class
+    'validate' => Validate::class,
+    'server' => Server::class
   ];
   /**
    * @var ServiceProvider[] 服务列表

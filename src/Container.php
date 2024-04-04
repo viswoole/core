@@ -102,11 +102,11 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
-   * 获取容器单实例
+   * 获取容器工厂单实例
    *
    * @return Container|static
    */
-  public static function single(): Container|static
+  public static function factory(): Container|static
   {
     if (!isset(self::$instance)) new static();
     return self::$instance;
