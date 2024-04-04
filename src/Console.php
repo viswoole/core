@@ -17,6 +17,9 @@ namespace ViSwoole\Core;
 
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use ViSwoole\Core\Command\server\ServerClose;
+use ViSwoole\Core\Command\server\ServerReload;
+use ViSwoole\Core\Command\server\ServerStart;
 use ViSwoole\Core\Command\ServiceDiscover;
 
 /**
@@ -26,7 +29,10 @@ class Console extends Application
 {
   protected array $defaultCommands = [
     \ViSwoole\Core\Command\Optimize\Facade::class,
-    ServiceDiscover::class
+    ServiceDiscover::class,
+    ServerStart::class,
+    ServerClose::class,
+    ServerReload::class
   ];
 
   public function __construct(string $name = 'viswoole', string $version = '1.0.0')
