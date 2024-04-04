@@ -72,23 +72,16 @@ class Server
    * @var string 项目根目录
    */
   protected string $rootPath;
-
-  protected function __construct(string $server_name)
-  {
-    // 初始化加载服务配置
-    $this->config = $this->initServerConfig($server_name);
-    // 创建服务
-    $this->server = $this->createSwooleServer();
-  }
-
   /**
-   * 加载服务配置
-   *
-   * @param string $server_name 服务名称
-   * @return array
-   * @throws ServerNotFoundException 服务未定义时触发
+   * @var array 默认全局配置
    */
-  protected function initServerConfig(string $server_name): array
+  protected array $global_option;
+  /**
+   * @var array 默认全局事件处理
+   */
+  protected array $global_event;
+
+  protected function __construct(string $server_name = 'http')
   {
     $this->serverName = $server_name;
     /**当前进程中的服务名称*/
@@ -105,6 +98,53 @@ class Server
       'default_pid_store_dir',
       $this->rootPath . '/runtime/server_pid'
     );
+    $default_global_option = [
+      // 一键协程化Hook函数范围 参考https://wiki.swoole.com/#/server/setting?id=hook_flags
+      Constant::OPTION_HOOK_FLAGS => SWOOLE_HOOK_ALL,
+      // 是否启用异步风格服务器的协程支持
+      Constant::OPTION_ENABLE_COROUTINE => true,
+      // 最大协程数
+      Constant::OPTION_MAX_CONCURRENCY => 100000,
+      // 进程守护运行
+      Constant::OPTION_DAEMONIZE => false,
+      // 进程守护运行默认输出日志路径
+      Constant::OPTION_LOG_FILE => BASE_PATH . '/runtime/sysLog.log',
+      // 工作进程数量
+      Constant::OPTION_WORKER_NUM => swoole_cpu_num(),
+      // 最大请求数 0为不限制
+      Constant::OPTION_MAX_REQUEST => 100000,
+      // 客户端连接的缓存区长度
+      Constant::OPTION_SOCKET_BUFFER_SIZE => 2 * 1024 * 1024,
+      // 发送输出缓冲区内存尺寸
+      Constant::OPTION_BUFFER_OUTPUT_SIZE => 2 * 1024 * 1024,
+      // 数据包最大尺寸 最小64k
+      Constant::OPTION_PACKAGE_MAX_LENGTH => 2 * 1024 * 1024,
+      // 日志输出等级
+      Constant::OPTION_LOG_LEVEL => SWOOLE_LOG_WARNING
+    ];
+    // 全局配置
+    $this->global_option = array_merge($default_global_option, config('server.options', []));
+    $default_global_event = [
+      Constant::EVENT_START => [Event::class, 'onStart'],
+      Constant::EVENT_SHUTDOWN => [Event::class, 'onShutdown']
+    ];
+    // 全局监听
+    $this->global_event = array_merge($default_global_event, config('server.events', []));
+    // 初始化加载服务配置
+    $this->config = $this->getConfig($server_name);
+    // 创建服务
+    $this->server = $this->createSwooleServer();
+  }
+
+  /**
+   * 加载服务配置
+   *
+   * @param string $server_name 服务名称
+   * @return array
+   * @throws ServerNotFoundException 服务未定义时触发
+   */
+  public function getConfig(string $server_name): array
+  {
     $server = config("server.servers.$server_name");
     if (empty($server)) {
       throw new ServerNotFoundException(
@@ -118,18 +158,15 @@ class Server
     }
     // 判断异常处理方法
     if (!isset($server['exception_handle'])) $server['exception_handle'] = $this->default_exception_handle;
-    // 全局配置
-    $globalOption = config('server.options', []);
-    // 全局监听
-    $globalEvent = config('server.events', []);
+
     // 服务构造参数
     $server['construct'] = array_merge(
       $this->defaultConstructArguments, $server['construct'] ?? []
     );
     // 合并配置
-    $server['options'] = array_merge($globalOption, $server['options'] ?? []);
+    $server['options'] = array_merge($this->global_option, $server['options'] ?? []);
     // 合并事件监听
-    $events = array_merge($globalEvent, $server['events'] ?? []);
+    $events = array_merge($this->global_event, $server['events'] ?? []);
     // HOOK事件监听
     $server['events'] = HookEventHandler::hook($events);
     // 任务回调协程化
@@ -171,24 +208,11 @@ class Server
   /**
    * 工厂单例
    */
-  public static function __make(string $server_name): Server
+  public static function __make(string $server_name = 'http'): Server
   {
     static $instance = null;
-    if ($instance === null) {
-      $instance = new static($server_name);
-    }
+    if ($instance === null) $instance = new static($server_name);
     return $instance;
-  }
-
-  /**
-   * 获取服务完整配置
-   *
-   * @access public
-   * @return array
-   */
-  public function getConfig(): array
-  {
-    return $this->config;
   }
 
   /**
