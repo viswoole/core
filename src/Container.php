@@ -41,9 +41,9 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
 {
   /**
    * 容器对象实例
-   * @var Container
+   * @var ContainerInterface
    */
-  protected static Container $instance;
+  protected static ContainerInterface $instance;
   /**
    * 服务绑定标识
    * @var array
@@ -59,13 +59,12 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   protected array $singleInstance = [];
 
-  public function __construct()
+  protected function __construct()
   {
     // 绑定容器自身标识
     $this->bind('container', $this);
     // 将容器类名映射到标识
     $this->bind(__CLASS__, 'container');
-    self::$instance = $this;
   }
 
   /**
@@ -104,11 +103,11 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   /**
    * 获取容器工厂单实例
    *
-   * @return Container|static
+   * @return ContainerInterface|static
    */
-  public static function factory(): Container|static
+  public static function factory(): ContainerInterface|static
   {
-    if (!isset(self::$instance)) new static();
+    if (!isset(self::$instance)) self::$instance = new static();
     return self::$instance;
   }
 

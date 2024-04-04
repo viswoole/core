@@ -45,7 +45,7 @@ class App extends Container
    */
   protected bool $debug;
 
-  public function __construct()
+  protected function __construct()
   {
     parent::__construct();
     $this->debug = $this->config->get('app.debug', false);
