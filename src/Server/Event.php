@@ -15,7 +15,31 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Server;
 
+use Swoole\Server;
+use ViSwoole\Core\Common\Output;
+
 class Event
 {
+  /**
+   * 监听服务启动
+   *
+   * @param Server $server
+   * @return void
+   */
+  public static function onStart(Server $server): void
+  {
+    $serverName = SERVER_NAME;
+    Output::echo("$serverName 服务启动 进程PID:" . $server->master_pid, 'NOTICE', 0);
+  }
 
+  /**
+   * 监听服务停止
+   *
+   * @return void
+   */
+  public static function onShutdown(): void
+  {
+    $serverName = SERVER_NAME;
+    Output::echo("$serverName 服务已经安全关闭", 'NOTICE', 0);
+  }
 }
