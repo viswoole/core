@@ -46,7 +46,6 @@ use ViSwoole\Core\Facade;
  */
 class App extends Facade
 {
-
   /**
    * 获取当前Facade对应类名
    *

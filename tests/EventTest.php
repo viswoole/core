@@ -17,7 +17,7 @@ namespace ViSwoole\Core\Tests;
 
 use Closure;
 use PHPUnit\Framework\TestCase;
-use ViSwoole\Core\Facades\App;
+use ViSwoole\Core\App;
 use ViSwoole\Core\Facades\Event;
 
 class EventTest extends TestCase
@@ -57,7 +57,7 @@ class EventTest extends TestCase
   protected function setUp(): void
   {
     parent::setUp();
-    App::single();
+    App::factory();
     $this->callback = function () {
       $this->callbackStatus = true;
     };

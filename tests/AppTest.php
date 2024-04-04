@@ -22,7 +22,7 @@ class AppTest extends TestCase
 {
   public function testApp()
   {
-    $container = new App();
+    $container = App::factory();
     $container->bind('test', function () {
       return 'test';
     });
