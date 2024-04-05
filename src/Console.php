@@ -15,8 +15,10 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
+use RuntimeException;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use ViSwoole\Core\Console\Commands\CommandDiscover;
 use ViSwoole\Core\Console\Commands\Server\ServerClose;
 use ViSwoole\Core\Console\Commands\Server\ServerReload;
 use ViSwoole\Core\Console\Commands\Server\ServerStart;
@@ -28,6 +30,7 @@ use ViSwoole\Core\Console\Commands\ServiceDiscover;
 class Console extends Application
 {
   protected array $defaultCommands = [
+    CommandDiscover::class,
     Console\Commands\Optimize\Facade::class,
     ServiceDiscover::class,
     ServerStart::class,
@@ -48,9 +51,20 @@ class Console extends Application
   protected function loadCommand(): void
   {
     $config = config('app.commands', []);
-    $config = array_merge($this->defaultCommands, $config);
+    $depPath = getRootPath() . '/vendor/commands.php';
+    // 依赖包注册的服务
+    $dependentCommands = is_file($depPath) ? require $depPath : [];
+    // 合并
+    $config = array_merge($this->defaultCommands, $config, $dependentCommands);
     foreach ($config as $class) {
-      $this->add(\ViSwoole\Core\Facades\App::invokeClass($class));
+      if (!class_exists($class)) throw new RuntimeException("$class 命令处理类不存在");
+      if (is_subclass_of($class, Command::class)) {
+        $this->addCommand(\ViSwoole\Core\Facades\App::invokeClass($class));
+      } else {
+        throw new RuntimeException(
+          "$class 不是可用的命令行处理程序，命令处理类必须继承自 " . Command::class
+        );
+      }
     }
   }
 
