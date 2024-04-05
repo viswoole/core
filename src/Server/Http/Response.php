@@ -260,7 +260,7 @@ class Response implements ResponseInterface
    */
   public function redirect(string $uri, int $http_code = 302): bool
   {
-    return $this->getResponse()->redirect($uri, $http_code);
+    return $this->getSwooleResponse()->redirect($uri, $http_code);
   }
 
   /**
@@ -269,7 +269,7 @@ class Response implements ResponseInterface
    * @access public
    * @return swooleResponse
    */
-  public function getResponse(): swooleResponse
+  public function getSwooleResponse(): swooleResponse
   {
     return $this->swooleResponse;
   }
@@ -283,16 +283,14 @@ class Response implements ResponseInterface
    */
   public function send(?string $content = null): bool
   {
-    if ($this->getResponse()->isWritable()) {
+    if ($this->getSwooleResponse()->isWritable()) {
       foreach ($this->headers as $k => $v) {
-        $this->getResponse()->setHeader($k, $v);
+        $this->getSwooleResponse()->setHeader($k, $v);
       }
-      $this->getResponse()->setStatusCode($this->statusCode);
-      if ($content === null) {
-        $content = $this->getBody()->getContents();
-      }
+      $this->getSwooleResponse()->setStatusCode($this->statusCode);
+      if ($content === null) $content = $this->getBody()->getContents();
       if ($this->messageEchoToConsole) {
-        $fd = $this->getResponse()->fd;
+        $fd = $this->getSwooleResponse()->fd;
         // 获得请求进入时间
         $request_time_float = \ViSwoole\Core\Server\Http\Facades\Request::getSwooleRequest()
           ->server['request_time_float'];
@@ -303,7 +301,7 @@ class Response implements ResponseInterface
         // 输出到控制台
         Output::dump($content, "($fd)响应内容:耗时{$elapsed_time}秒");
       }
-      return $this->getResponse()->end($content);
+      return $this->getSwooleResponse()->end($content);
     } else {
       return false;
     }
@@ -379,7 +377,7 @@ class Response implements ResponseInterface
    * @param string $charset 输出编码 默认utf-8
    * @return static
    */
-  public function contentType(string $contentType = 'application/json', string $charset = 'utf-8'
+  public function setContentType(string $contentType = 'application/json', string $charset = 'utf-8'
   ): static
   {
     return $this->withHeader('Content-Type', "$contentType; charset=$charset");
@@ -402,7 +400,7 @@ class Response implements ResponseInterface
     Header::validate($name, $value);
     $newResponse = clone $this;
     $newName = Header::hasHeader($name, $newResponse->headers);
-    if (is_bool($newName)) $newName = Header::formatName($name);
+    if ($newName === false) $newName = Header::formatName($name);
     $newResponse->headers[$newName] = is_array($value) ? implode(',', $value) : $value;
     return $newResponse;
   }
@@ -411,17 +409,17 @@ class Response implements ResponseInterface
    * 标准错误响应格式
    *
    * @access public
-   * @param mixed $errMsg 提示信息array|object为data
+   * @param string $errMsg 提示信息array|object为data
    * @param int $errCode 业务错误码
-   * @param mixed $data 响应数据
-   * @return static
+   * @param array|null $data 响应数据
+   * @return ResponseInterface
    */
-  public function error(mixed $errMsg = 'error', int $errCode = -1, mixed $data = null): static
+  public function error(
+    string $errMsg = 'error',
+    int    $errCode = -1,
+    array  $data = null
+  ): ResponseInterface
   {
-    if (is_array($errMsg) || is_object($errMsg) || is_null($errMsg)) {
-      $data = $data ?: $errMsg;
-      $errMsg = 'error';
-    }
     $res = [
       'errCode' => $errCode,
       'errMsg' => $errMsg,
@@ -486,22 +484,25 @@ class Response implements ResponseInterface
   }
 
   /**
-   * 标准系统内部错误响应
+   * 标准的系统异常响应
    *
    * @param string $errMsg 错误提示信息
    * @param int $errCode 业务错误码
    * @param int $statusCode http状态码
-   * @param mixed $data 数据
-   * @return static
+   * @param array|null $errTrace
+   * @return ResponseInterface
    */
   public function exception(
-    string $errMsg = '系统内部错误', int $errCode = 500, int $statusCode = 500, mixed $data = null
-  ): static
+    string $errMsg = '系统内部异常',
+    int    $errCode = 500,
+    int    $statusCode = 500,
+    array  $errTrace = null
+  ): ResponseInterface
   {
     $res = [
       'errCode' => $errCode,
       'errMsg' => $errMsg,
-      'data' => $data
+      'errTrace' => $errTrace
     ];
     return $this->json($res, $statusCode);
   }
@@ -510,14 +511,14 @@ class Response implements ResponseInterface
    * 标准成功响应格式
    *
    * @access public
-   * @param mixed $errMsg 提示信息array|object为data
-   * @param mixed $data 响应数据
-   * @return static
+   * @param string|array $errMsg 提示信息,如果传入数组则做为响应数据默认提示信息为success
+   * @param array|null $data 响应数据
+   * @return ResponseInterface
    */
-  public function success(mixed $errMsg = 'success', mixed $data = null): static
+  public function success(string|array $errMsg = 'success', array $data = null): static
   {
-    if (is_array($errMsg) || is_object($errMsg) || is_null($errMsg)) {
-      $data = $data ?? $errMsg;
+    if (is_array($errMsg)) {
+      $data = $errMsg;
       $errMsg = 'success';
     }
     $res = [
@@ -548,32 +549,6 @@ class Response implements ResponseInterface
     }
     $this->swooleResponse->header('Content-Type', $fileMimeType);
     return $this->swooleResponse->sendfile($filePath);
-  }
-
-  /**
-   * setHeader别名方法
-   *
-   * @access public
-   * @param string|array $name 不区分大小写标头或[$name=>$value]
-   * @param array|string|null $value 标头值
-   * @return static
-   */
-  public function header(array|string $name, array|string|null $value = null): ResponseInterface
-  {
-    return $this->setHeader($name, $value);
-  }
-
-  /**
-   * 发送HTTP状态
-   *
-   * @access public
-   * @param int $statusCode 状态码
-   * @param string $reasonPhrase 状态描述短语
-   * @return static
-   */
-  public function code(int $statusCode, string $reasonPhrase = ''): static
-  {
-    return $this->setCode($statusCode, $reasonPhrase);
   }
 
   /**

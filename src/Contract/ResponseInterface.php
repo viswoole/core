@@ -34,7 +34,7 @@ interface ResponseInterface extends \Psr\Http\Message\ResponseInterface
    * @access public
    * @return swooleResponse
    */
-  public function getResponse(): swooleResponse;
+  public function getSwooleResponse(): swooleResponse;
 
   /**
    * 发送响应
@@ -53,18 +53,8 @@ interface ResponseInterface extends \Psr\Http\Message\ResponseInterface
    * @param string $charset 输出编码
    * @return static
    */
-  public function contentType(string $contentType = 'application/json', string $charset = 'utf-8'
+  public function setContentType(string $contentType = 'application/json', string $charset = 'utf-8'
   ): ResponseInterface;
-
-  /**
-   * 发送HTTP状态
-   *
-   * @access public
-   * @param int $statusCode 状态码
-   * @param string $reasonPhrase 状态描述短语
-   * @return static
-   */
-  public function code(int $statusCode, string $reasonPhrase = ''): ResponseInterface;
 
   /**
    * 发送HTTP状态
@@ -84,28 +74,21 @@ interface ResponseInterface extends \Psr\Http\Message\ResponseInterface
    * @param array|string|null $value 标头值
    * @return static
    */
-  public function header(string|array $name, array|string|null $value = null): ResponseInterface;
-
-  /**
-   * 设置响应头(可批量设置)
-   *
-   * @access public
-   * @param string|array $name 不区分大小写标头或[$name=>$value]
-   * @param array|string|null $value 标头值
-   * @return static
-   */
   public function setHeader(string|array $name, array|string|null $value = null): ResponseInterface;
 
   /**
    * 标准错误响应格式
    *
    * @access public
-   * @param mixed $errMsg 提示信息array|object为data
+   * @param string $errMsg 错误提示信息
    * @param int $errCode 错误码
-   * @param mixed $data 响应数据
+   * @param array|null $data 响应数据
    * @return static
    */
-  public function error(mixed $errMsg = 'error', int $errCode = -1, mixed $data = null
+  public function error(
+    string $errMsg = 'error',
+    int    $errCode = -1,
+    array  $data = null
   ): ResponseInterface;
 
   /**
@@ -114,11 +97,14 @@ interface ResponseInterface extends \Psr\Http\Message\ResponseInterface
    * @param string $errMsg 错误提示信息
    * @param int $errCode 错误码
    * @param int $statusCode 状态码
-   * @param mixed $data 额外数据
+   * @param array|null $errTrace 额外数据
    * @return static
    */
   public function exception(
-    string $errMsg = '系统内部错误', int $errCode = 500, int $statusCode = 500, mixed $data = null
+    string $errMsg = '系统内部错误',
+    int    $errCode = 500,
+    int    $statusCode = 500,
+    array  $errTrace = null
   ): ResponseInterface;
 
   /**
@@ -135,11 +121,11 @@ interface ResponseInterface extends \Psr\Http\Message\ResponseInterface
    * 标准成功响应格式
    *
    * @access public
-   * @param mixed $errMsg 提示信息array|object为data
-   * @param mixed $data 响应数据
-   * @return static
+   * @param string|array $errMsg 提示信息,如果传入数组则做为响应数据默认提示信息为success
+   * @param array|null $data 响应数据
+   * @return ResponseInterface
    */
-  public function success(mixed $errMsg = 'success', mixed $data = null): ResponseInterface;
+  public function success(string|array $errMsg = 'success', array $data = null): ResponseInterface;
 
   /**
    * 检索所有消息头的值。
