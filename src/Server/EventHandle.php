@@ -18,7 +18,10 @@ namespace ViSwoole\Core\Server;
 use Swoole\Server;
 use ViSwoole\Core\Console\Output;
 
-class Event
+/**
+ * 默认事件处理类
+ */
+class EventHandle
 {
   /**
    * 监听服务启动
