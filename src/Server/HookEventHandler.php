@@ -18,7 +18,6 @@ namespace ViSwoole\Core\Server;
 use Closure;
 use Swoole\Constant;
 use Swoole\Server as SwooleServer;
-use ViSwoole\Core\Facades\App;
 
 /**
  * Hook Swoole Servers Event
@@ -28,7 +27,7 @@ use ViSwoole\Core\Facades\App;
 class HookEventHandler
 {
   /**
-   * 映射
+   * 事件映射到本来的方法
    */
   public const array EVENT_MAP = [
     Constant::EVENT_START => 'onStart',
@@ -49,7 +48,6 @@ class HookEventHandler
    */
   public static function onStart(SwooleServer $server): void
   {
-    App::get('TaskManager')->init();
     \ViSwoole\Core\Facades\Event::emit('serverRun', ['server' => $server]);
     self::runHook(__FUNCTION__, func_get_args());
   }
@@ -111,7 +109,7 @@ class HookEventHandler
     foreach ($sys_events as $eventName => $handler) {
       // 判断hook的事件是否在用户自定义监听中存在
       if (array_key_exists($eventName, $events)) {
-        // 如果存在则加入到hook数组中 在后续执行到
+        // 如果存在则加入到hook数组中
         self::$hook[$handler] = $events[$eventName];
       }
       // 添加事件到监听配置中
