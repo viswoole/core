@@ -15,6 +15,7 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Server\Http;
 
+use BadMethodCallException;
 use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
 use Swoole\Http\Response as swooleResponse;
@@ -24,6 +25,15 @@ use ViSwoole\Core\Coroutine;
 use ViSwoole\Core\Coroutine\Context;
 use ViSwoole\Core\Server\Http\Message\FileStream;
 
+/**
+ * HTTP响应类
+ *
+ * 该类封装了Swoole\Http\Response类，并提供了一些额外的功能和特性。
+ * 如果想要调用Swoole\Http\Response类中的方法，实现更多功能，
+ * 可调用getSwooleResponse()方法获取原始的Swoole\Http\Response对象。
+ * 该类还实现了__call()魔术方法，如果调用的方法不存在于该类则会判断是否为Swoole\Http\Response对象的方法。
+ * @link https://wiki.swoole.com/#/http_server?id=swoolehttpresponse
+ */
 class Response implements ResponseInterface
 {
   /**
@@ -71,9 +81,9 @@ class Response implements ResponseInterface
   /**
    * 自定义实例化
    *
-   * @return static
+   * @return ResponseInterface
    */
-  public static function __make(): static
+  public static function __make(): ResponseInterface
   {
     return Context::get(__CLASS__, Coroutine::getTopId());
   }
@@ -92,7 +102,7 @@ class Response implements ResponseInterface
    * 返回具有指定的 HTTP 协议版本的实例。
    *
    * @param string $version HTTP 版本号（例如，"1.1"，"1.0"）。
-   * @return static
+   * @return ResponseInterface
    */
   public function withProtocolVersion(string $version): ResponseInterface
   {
@@ -165,7 +175,7 @@ class Response implements ResponseInterface
    *
    * @param string $name 不区分大小写的标头字段名称。
    * @param string|string[] $value 标头值。
-   * @return static
+   * @return ResponseInterface
    * @throws InvalidArgumentException 对于无效的标头名称或值。
    */
   public function withAddedHeader(string $name, $value): ResponseInterface
@@ -207,7 +217,7 @@ class Response implements ResponseInterface
    * 此方法必须以保持消息的不可变性的方式实现，并且必须返回移除命名标头的实例。
    *
    * @param string $name 不区分大小写的标头字段名称要删除。
-   * @return static
+   * @return ResponseInterface
    */
   public function withoutHeader(string $name): ResponseInterface
   {
@@ -229,7 +239,7 @@ class Response implements ResponseInterface
    * 此方法必须以保持消息的不可变性的方式实现，并且必须返回具有新主体流的新实例。
    *
    * @param StreamInterface $body 主体。
-   * @return static
+   * @return ResponseInterface
    * @throws InvalidArgumentException 当主体无效时。
    */
   public function withBody(StreamInterface $body): ResponseInterface
@@ -313,9 +323,9 @@ class Response implements ResponseInterface
    * @access public
    * @param string|array $name 不区分大小写标头或[$name=>$value]
    * @param array|string|null $value 标头值
-   * @return static
+   * @return ResponseInterface
    */
-  public function setHeader(array|string $name, array|string|null $value = null): static
+  public function setHeader(array|string $name, array|string|null $value = null): ResponseInterface
   {
     $newResponse = $this;
     if (is_array($name)) {
@@ -354,9 +364,9 @@ class Response implements ResponseInterface
    * 创建响应对象
    *
    * @param swooleResponse|null $response
-   * @return static
+   * @return ResponseInterface
    */
-  public static function create(?swooleResponse $response = null): static
+  public static function create(?swooleResponse $response = null): ResponseInterface
   {
     $instance = Context::get(__CLASS__, null, Coroutine::getTopId());
     if (is_null($instance)) {
@@ -375,10 +385,10 @@ class Response implements ResponseInterface
    * @access public
    * @param string $contentType 输出类型 默认application/json
    * @param string $charset 输出编码 默认utf-8
-   * @return static
+   * @return ResponseInterface
    */
   public function setContentType(string $contentType = 'application/json', string $charset = 'utf-8'
-  ): static
+  ): ResponseInterface
   {
     return $this->withHeader('Content-Type', "$contentType; charset=$charset");
   }
@@ -392,7 +402,7 @@ class Response implements ResponseInterface
    *
    * @param string $name 不区分大小写的标头字段名称，自动格式化为合法标头。
    * @param string|string[] $value 标头值（们）。
-   * @return static
+   * @return ResponseInterface
    * @throws InvalidArgumentException 对于无效的标头名称或值。
    */
   public function withHeader(string $name, $value): ResponseInterface
@@ -434,9 +444,9 @@ class Response implements ResponseInterface
    * @access public
    * @param array|object $data
    * @param int $statusCode
-   * @return static
+   * @return ResponseInterface
    */
-  public function json(object|array $data, int $statusCode = 200): static
+  public function json(object|array $data, int $statusCode = 200): ResponseInterface
   {
     $newResponse = clone $this;
     $newResponse->headers['Content-Type'] = 'application/json; charset=utf-8';
@@ -450,9 +460,9 @@ class Response implements ResponseInterface
    *
    * @access public
    * @param string $content
-   * @return static
+   * @return ResponseInterface
    */
-  public function setContent(string $content): static
+  public function setContent(string $content): ResponseInterface
   {
     $this->stream = FileStream::create('php://memory', 'r+');
     $this->stream->write($content);
@@ -464,9 +474,9 @@ class Response implements ResponseInterface
    *
    * @access public
    * @param string $content
-   * @return static
+   * @return ResponseInterface
    */
-  public function setMessage(string $content): static
+  public function setMessage(string $content): ResponseInterface
   {
     return $this->setContent($content);
   }
@@ -475,9 +485,9 @@ class Response implements ResponseInterface
    * 是否将响应回显到控制台
    *
    * @param bool $echo
-   * @return $this
+   * @return ResponseInterface
    */
-  public function echoConsole(bool $echo = true): static
+  public function echoConsole(bool $echo = true): ResponseInterface
   {
     $this->messageEchoToConsole = $echo;
     return $this;
@@ -515,7 +525,7 @@ class Response implements ResponseInterface
    * @param array|null $data 响应数据
    * @return ResponseInterface
    */
-  public function success(string|array $errMsg = 'success', array $data = null): static
+  public function success(string|array $errMsg = 'success', array $data = null): ResponseInterface
   {
     if (is_array($errMsg)) {
       $data = $errMsg;
@@ -557,7 +567,7 @@ class Response implements ResponseInterface
    * @access public
    * @param int $statusCode 状态码
    * @param string $reasonPhrase 状态描述短语
-   * @return static
+   * @return ResponseInterface
    */
   public function setCode(int $statusCode, string $reasonPhrase = ''): ResponseInterface
   {
@@ -571,10 +581,10 @@ class Response implements ResponseInterface
    *
    * @param int $code 要设置的 3 位整数结果代码。
    * @param string $reasonPhrase 与提供的状态代码一起使用的原因短语；如果未提供，则实现可以使用 HTTP 规范中建议的默认值。
-   * @return static
+   * @return ResponseInterface
    * @throws InvalidArgumentException 对于无效的状态代码参数。
    */
-  public function withStatus(int $code, string $reasonPhrase = ''): static
+  public function withStatus(int $code, string $reasonPhrase = ''): ResponseInterface
   {
     // 检查状态码是否有效
     if ($code < 100 || $code >= 600) {
@@ -602,5 +612,102 @@ class Response implements ResponseInterface
   public function getReasonPhrase(): string
   {
     return $this->reasonPhrase;
+  }
+
+  /**
+   * 支持调用Swoole Response实例的方法
+   *
+   * @param string $name
+   * @param array $arguments
+   * @return mixed
+   */
+  public function __call(string $name, array $arguments)
+  {
+    if (method_exists($this->swooleResponse, $name)) {
+      return call_user_func_array([$this->swooleResponse, $name], $arguments);
+    } else {
+      throw new BadMethodCallException('Method not exists: ' . $name);
+    }
+  }
+
+  /**
+   * 设置Cookie信息
+   *
+   * @access public
+   * @param string $key
+   * @param string $value
+   * @param int $expire 过期时间
+   * @param string $path 存储路径
+   * @param string $domain 域名
+   * @param bool $secure 是否通过安全的 HTTPS 连接来传输 Cookie
+   * @param bool $httponly 是否允许浏览器的JavaScript访问带有 HttpOnly 属性的 Cookie
+   * @param string $samesite 限制第三方 Cookie，从而减少安全风险
+   * @param string $priority Cookie优先级，当Cookie数量超过规定，低优先级的会先被删除
+   * @return bool
+   */
+  public function setCookie(
+    string $key,
+    string $value = '',
+    int    $expire = 0,
+    string $path = '/',
+    string $domain = '',
+    bool   $secure = false,
+    bool   $httponly = false,
+    string $samesite = '',
+    string $priority = ''
+  ): bool
+  {
+    return $this->swooleResponse->setCookie(
+      $key,
+      $value,
+      $expire,
+      $path,
+      $domain,
+      $secure,
+      $httponly,
+      $samesite,
+      $priority
+    );
+  }
+
+  /**
+   * rawCookie() 的参数和上文的 setCookie() 一致，只不过不进行编码处理
+   *
+   * @access public
+   * @param string $key
+   * @param string $value
+   * @param int $expire
+   * @param string $path
+   * @param string $domain
+   * @param bool $secure
+   * @param bool $httponly
+   * @param string $samesite
+   * @param string $priority
+   * @return bool
+   * @see static::setCookie()
+   */
+  public function rawCookie(
+    string $key,
+    string $value = '',
+    int    $expire = 0,
+    string $path = '/',
+    string $domain = '',
+    bool   $secure = false,
+    bool   $httponly = false,
+    string $samesite = '',
+    string $priority = ''
+  ): bool
+  {
+    return $this->swooleResponse->rawcookie(
+      $key,
+      $value,
+      $expire,
+      $path,
+      $domain,
+      $secure,
+      $httponly,
+      $samesite,
+      $priority
+    );
   }
 }

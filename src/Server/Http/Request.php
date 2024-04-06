@@ -445,9 +445,9 @@ class Request implements RequestInterface
    * @param string $name 属性名称。
    * @param mixed $default 如果属性不存在，则返回的默认值。
    * @return mixed
-   * @see getAttributes()
+   * @see static::getAttributes()
    */
-  public function getAttribute(string $name, $default = null): mixed
+  public function getAttribute(string $name, mixed $default = null): mixed
   {
     return $this->getAttributes()[$name] ?? $default;
   }

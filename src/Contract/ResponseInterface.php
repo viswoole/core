@@ -158,9 +158,9 @@ interface ResponseInterface extends \Psr\Http\Message\ResponseInterface
    * 是否将响应回显到控制台
    *
    * @param bool $echo
-   * @return $this
+   * @return ResponseInterface
    */
-  public function echoConsole(bool $echo = true): static;
+  public function echoConsole(bool $echo = true): ResponseInterface;
 
   /**
    * 发送文件
@@ -173,5 +173,60 @@ interface ResponseInterface extends \Psr\Http\Message\ResponseInterface
    */
   public function sendfile(
     string $filePath, int $offset = 0, int $length = 0, ?string $fileMimeType = null
+  ): bool;
+
+  /**
+   * rawCookie() 的参数和上文的 setCookie() 一致，只不过不进行编码处理
+   *
+   * @access public
+   * @param string $key
+   * @param string $value
+   * @param int $expire
+   * @param string $path
+   * @param string $domain
+   * @param bool $secure
+   * @param bool $httponly
+   * @param string $samesite
+   * @param string $priority
+   * @return bool
+   * @see static::setCookie()
+   */
+  public function rawCookie(
+    string $key,
+    string $value = '',
+    int    $expire = 0,
+    string $path = '/',
+    string $domain = '',
+    bool   $secure = false,
+    bool   $httponly = false,
+    string $samesite = '',
+    string $priority = ''
+  ): bool;
+
+  /**
+   * 设置Cookie信息
+   *
+   * @access public
+   * @param string $key
+   * @param string $value
+   * @param int $expire 过期时间
+   * @param string $path 存储路径
+   * @param string $domain 域名
+   * @param bool $secure 是否通过安全的 HTTPS 连接来传输 Cookie
+   * @param bool $httponly 是否允许浏览器的JavaScript访问带有 HttpOnly 属性的 Cookie
+   * @param string $samesite 限制第三方 Cookie，从而减少安全风险
+   * @param string $priority Cookie优先级，当Cookie数量超过规定，低优先级的会先被删除
+   * @return bool
+   */
+  public function setCookie(
+    string $key,
+    string $value = '',
+    int    $expire = 0,
+    string $path = '/',
+    string $domain = '',
+    bool   $secure = false,
+    bool   $httponly = false,
+    string $samesite = '',
+    string $priority = ''
   ): bool;
 }
