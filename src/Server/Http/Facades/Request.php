@@ -31,14 +31,14 @@ use ViSwoole\Core\Facade;
  * @method static array getServerParams() 检索服务器参数。
  * @method static array getCookieParams() 检索 Cookie。
  * @method static ServerRequestInterface withCookieParams(array $cookies) 返回具有指定 Cookie 的实例。
- * @method static RequestInterface create(?swooleRequest $request) 创建request对象
+ * @method static RequestInterface create(?swooleRequest $request = null) 创建request对象
  * @method static array getQueryParams() 检索查询字符串参数。
  * @method static ServerRequestInterface withQueryParams(array $query) 返回具有指定查询字符串参数的实例。
  * @method static array getUploadedFiles() 检索标准化的文件上传数据。
  * @method static ServerRequestInterface withUploadedFiles(array $uploadedFiles) 创建具有指定上传文件的新实例。
  * @method static object|array|null getParsedBody() 检索请求体中提供的参数。
  * @method static ServerRequestInterface withParsedBody(mixed $data) 返回具有指定 body 参数的实例。
- * @method static mixed getAttribute(string $name, mixed $default) 检索单个派生的请求属性。
+ * @method static mixed getAttribute(string $name, mixed $default = null) 检索单个派生的请求属性。
  * @method static array getAttributes() 检索从请求派生的属性。
  * @method static ServerRequestInterface withAttribute(string $name, mixed $value) 返回具有指定派生请求属性的实例。
  * @method static ServerRequestInterface withoutAttribute(string $name) 返回删除指定派生请求属性的实例。
@@ -62,10 +62,10 @@ use ViSwoole\Core\Facade;
  * @method static RequestInterface withBody(StreamInterface $body) 返回具有指定消息主体的实例。
  * @method static string ip() 获取客户端ip
  * @method static array getParams(array|string|null $rule, bool $isShowNull) 批量获取请求参数
- * @method static mixed param(?string $key, mixed $default, ?string $filter) 获取请求参数
+ * @method static mixed param(?string $key, mixed $default, string $filter = null) 获取请求参数
  * @method static string getMethod() 检索请求的 HTTP 方法。
  * @method static mixed post(?string $key, mixed $default) 获取post参数
- * @method static string filter(string $data, array|string|null $filter) 过滤
+ * @method static string filter(string $data, array|string $filter) 过滤
  * @method static bool isJson() 当前是否JSON请求
  * @method static string getHeaderLine(string $name) 检索单个标头的值的逗号分隔字符串。
  * @method static string getAcceptType() 当前请求的资源类型

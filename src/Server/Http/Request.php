@@ -164,10 +164,14 @@ class Request implements RequestInterface
    * 获取请求参数
    * @param string|null $key
    * @param mixed $default
-   * @param string|null $filter
+   * @param string|array|null $filter
    * @return mixed
    */
-  public function param(?string $key = null, mixed $default = null, string $filter = null): mixed
+  public function param(
+    ?string      $key = null,
+    mixed        $default = null,
+    string|array $filter = null
+  ): mixed
   {
     if ($this->getMethod() !== 'GET') {
       $data = $this->post($key, $default);
@@ -298,7 +302,7 @@ class Request implements RequestInterface
    *
    * @access public
    * @param swooleRequest|null $request
-   * @return Request
+   * @return Request 如果已经创建过，直接返回请求对象
    */
   public static function create(?swooleRequest $request = null): static
   {

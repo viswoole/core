@@ -71,8 +71,9 @@ interface RequestInterface extends ServerRequestInterface
 
   /**
    * 过滤
+   *
    * @param string $data
-   * @param array|string|null $filter
+   * @param array|string|null $filter 传入null则使用全局过滤方法进行过滤
    * @return string
    */
   public function filter(string $data, array|string|null $filter = null): string;
