@@ -562,7 +562,7 @@ class Response implements ResponseInterface
   }
 
   /**
-   * 发送HTTP状态
+   * 设置HTTP状态(影响当前实例)
    *
    * @access public
    * @param int $statusCode 状态码
@@ -571,7 +571,31 @@ class Response implements ResponseInterface
    */
   public function setCode(int $statusCode, string $reasonPhrase = ''): ResponseInterface
   {
-    return $this->withStatus($statusCode, $reasonPhrase);
+    // 检查状态码是否有效
+    if ($statusCode < 100 || $statusCode >= 600) {
+      throw new InvalidArgumentException(
+        'Invalid HTTP status code, correct value should be between 100 and 599 '
+      );
+    }
+    $this->statusCode = $statusCode;
+    if (empty($reasonPhrase)) {
+      $reasonPhrase = Status::getReasonPhrase($statusCode);
+    }
+    $this->reasonPhrase = $reasonPhrase;
+    return $this;
+  }
+
+  /**
+   * 获取与状态代码相关联的响应原因短语。
+   *
+   * 由于响应状态行中的原因短语不是必需元素，原因短语值可以为 null。实现可以选择返回响应状态代码的 RFC 7231 推荐原因短语
+   * （或 IANA HTTP 状态码注册中的原因短语列表）作为默认值。
+   *
+   * @return string 原因短语；如果没有则必须返回一个空字符串。
+   */
+  public function getReasonPhrase(): string
+  {
+    return $this->reasonPhrase;
   }
 
   /**
@@ -599,19 +623,6 @@ class Response implements ResponseInterface
     }
     $newRequest->reasonPhrase = $reasonPhrase;
     return $newRequest;
-  }
-
-  /**
-   * 获取与状态代码相关联的响应原因短语。
-   *
-   * 由于响应状态行中的原因短语不是必需元素，原因短语值可以为 null。实现可以选择返回响应状态代码的 RFC 7231 推荐原因短语
-   * （或 IANA HTTP 状态码注册中的原因短语列表）作为默认值。
-   *
-   * @return string 原因短语；如果没有则必须返回一个空字符串。
-   */
-  public function getReasonPhrase(): string
-  {
-    return $this->reasonPhrase;
   }
 
   /**
