@@ -35,17 +35,17 @@ use ViSwoole\Core\Facade;
  * @method static MessageInterface withoutHeader(string $name) 返回一个没有指定标头的实例。
  * @method static MessageInterface withBody(StreamInterface $body) 修改响应的消息主体。
  * @method static int getStatusCode() 获取响应状态代码。
- * @method static bool redirect(string $uri, int $http_code) 重定向
+ * @method static bool redirect(string $uri, int $http_code = 302) 重定向
  * @method static \Swoole\Http\Response getSwooleResponse() 获取swoole的Response对象
- * @method static bool send(mixed $content) 发送响应
+ * @method static bool send(?string $content = null) 发送响应
  * @method static StreamInterface getBody() 获取消息的主体。
- * @method static \ViSwoole\Core\Server\Http\Response create(\Swoole\Http\Response $response) 创建响应对象
+ * @method static \ViSwoole\Core\Server\Http\Response create(\Swoole\Http\Response $response = null) 创建响应对象
  * @method static \ViSwoole\Core\Server\Http\Response setContentType(string $contentType, string $charset) 设置Content-Type响应头
  * @method static MessageInterface withHeader(string $name, mixed $value) 修改响应头。
- * @method static \ViSwoole\Core\Server\Http\Response withStatus(int $code, string $reasonPhrase) 修改状态码
+ * @method static \ViSwoole\Core\Server\Http\Response withStatus(int $code, string $reasonPhrase = '') 修改状态码
  * @method static string getReasonPhrase() 获取与状态代码相关联的响应原因短语。
  * @method static \ViSwoole\Core\Server\Http\Response error(string|array $errMsg, array $data = null) 标准错误响应格式
- * @method static \ViSwoole\Core\Server\Http\Response json(object|array $data, int $statusCode) 标准json响应
+ * @method static \ViSwoole\Core\Server\Http\Response json(object|array $data, int $statusCode = 200) 标准json响应
  * @method static \ViSwoole\Core\Server\Http\Response setContent(string $content) 设置响应内容
  * @method static \ViSwoole\Core\Server\Http\Response exception(string $errMsg, int $errCode = 500, int $statusCode = 500, array $data = null) 标准系统内部错误响应
  * @method static \ViSwoole\Core\Server\Http\Response success(string|array $errMsg, array $data = null) 标准成功响应格式
