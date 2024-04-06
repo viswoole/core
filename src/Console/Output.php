@@ -132,7 +132,7 @@ class Output
       $trace = '';
     }
     $date = date('c');
-    if (array_key_exists($color, self::COLORS)) {
+    if (array_key_exists($color, self::LEVEL_COLOR)) {
       $color = self::LEVEL_COLOR[$color];
     } else {
       $console_color_pattern = '/^(\033)\[[0-9;]+m$/';
