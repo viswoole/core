@@ -58,12 +58,14 @@ class Output
    *
    * @access public
    * @param mixed $data 变量内容
+   * @param string $title 标题
    * @param string $color 颜色
    * @param int $backtrace 1为输出调用源，0为不输出
    * @return void
    */
   public static function dump(
     mixed  $data,
+    string $title = 'variable output',
     string $color = self::COLORS['GREEN'],
     int    $backtrace = 1
   ): void
@@ -80,7 +82,7 @@ class Output
 
     $rowLength = max($contentMaxLength, $defaultLength);
 
-    echo $color . str_pad('variable output', $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
+    echo $color . str_pad($title, $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
 
     echo self::COLORS['DEFAULT'] . var_export($data, true) . PHP_EOL;
 
