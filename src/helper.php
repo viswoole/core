@@ -16,6 +16,7 @@ declare (strict_types=1);
 // 该文件定义了一些常用助手函数
 
 
+use ViSwoole\Core\Console\Output;
 use ViSwoole\Core\Facades\App;
 use ViSwoole\Core\Facades\Config;
 use ViSwoole\Core\Facades\Env;
@@ -80,3 +81,25 @@ if (!function_exists('config')) {
     return Config::get($name, $default);
   }
 }
+if (!function_exists('dump')) {
+  /**
+   * 打印变量
+   *
+   * @access public
+   * @param mixed $data 变量内容
+   * @param string $title 标题
+   * @param string $color 颜色
+   * @param int $backtrace 1为输出调用源，0为不输出
+   * @return void
+   */
+  function dump(
+    mixed  $data,
+    string $title = 'variable output',
+    string $color = Output::COLORS['GREEN'],
+    int    $backtrace = 1
+  ): void
+  {
+    Output::dump($data, $title, $color, $backtrace === 0 ? 0 : 2);
+  }
+}
+
