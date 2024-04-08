@@ -55,9 +55,7 @@ class Request implements RequestInterface
    *  例3 ['htmlspecialchars','strip_tags'=>null]。
    * @var array{string:array} 全局过滤方法
    */
-  protected array $filter = [
-    'htmlspecialchars' => null
-  ];
+  protected array $filter = [];
   /**
    * @var UriInterface Uri实例
    */
@@ -275,9 +273,8 @@ class Request implements RequestInterface
    */
   public function withCookieParams(array $cookies): RequestInterface
   {
-    $newRequest = clone $this;
-    $newRequest->swooleRequest->cookie = $cookies;
-    return $newRequest;
+    $this->swooleRequest->cookie = $cookies;
+    return $this;
   }
 
   public function __clone(): void
@@ -356,17 +353,14 @@ class Request implements RequestInterface
    *
    * 设置查询字符串参数不得更改存储在请求中的 URI，也不得更改服务器参数中的值。
    *
-   * 此方法必须以保持消息的不可变性的方式实现，并且必须返回具有已更新的查询字符串参数的实例。
-   *
    * @param array $query 查询字符串参数的键/值对数组，通常来自于 $_GET。
    * @return static
    */
   public function withQueryParams(array $query): RequestInterface
   {
-    $newRequest = clone $this;
     $query = http_build_query($query);
-    $newRequest->swooleRequest->server['query_string'] = $query;
-    return $newRequest;
+    $this->swooleRequest->server['query_string'] = $query;
+    return $this;
   }
 
   /**
@@ -382,8 +376,6 @@ class Request implements RequestInterface
   /**
    * 创建具有指定上传文件的新实例。
    *
-   * 此方法必须以保持消息的不可变性的方式实现，并且必须返回具有已更新的 body 参数的实例。
-   *
    * @param array $uploadedFiles 包含 UploadedFileInterface 实例的树形数组。
    * @return static
    * @throws InvalidArgumentException 如果上传文件结构无效
@@ -391,9 +383,8 @@ class Request implements RequestInterface
   public function withUploadedFiles(array $uploadedFiles): RequestInterface
   {
     $this->validateUploadedFilesStructure($uploadedFiles);
-    $newRequest = clone $this;
-    $newRequest->swooleRequest->files = $uploadedFiles;
-    return $newRequest;
+    $this->swooleRequest->files = $uploadedFiles;
+    return $this;
   }
 
   /**
@@ -438,9 +429,8 @@ class Request implements RequestInterface
         'Invalid data type provided; must be null, array, or object'
       );
     }
-    $newRequest = clone $this;
-    $newRequest->swooleRequest->post = $data;
-    return $newRequest;
+    $this->swooleRequest->post = $data;
+    return $this;
   }
 
   /**
@@ -487,8 +477,6 @@ class Request implements RequestInterface
    *
    * 此方法允许设置单个派生的请求属性，如在 getAttributes() 中描述。
    *
-   * 此方法必须以保持消息的不可变性的方式实现，并且必须返回具有已更新属性的实例。
-   *
    * @param string $name 属性名称。
    * @param mixed $value 属性的值。
    * @return static
@@ -502,9 +490,8 @@ class Request implements RequestInterface
         "Unknown attribute $name"
       );
     }
-    $newRequest = clone $this;
-    $newRequest->swooleRequest->{$name} = $value;
-    return $newRequest;
+    $this->swooleRequest->{$name} = $value;
+    return $this;
   }
 
   /**
@@ -512,19 +499,16 @@ class Request implements RequestInterface
    *
    * 此方法允许删除单个派生的请求属性，如在 getAttributes() 中描述。
    *
-   * 此方法必须以保持消息的不可变性的方式实现，并且必须返回已删除属性的实例。
-   *
    * @param string $name 属性名称。
    * @return RequestInterface
    * @see getAttributes()
    */
   public function withoutAttribute(string $name): RequestInterface
   {
-    $newRequest = clone $this;
-    if (isset($newRequest->swooleRequest->{$name})) {
-      unset($newRequest->swooleRequest->{$name});
+    if (isset($this->swooleRequest->{$name})) {
+      unset($this->swooleRequest->{$name});
     }
-    return $newRequest;
+    return $this;
   }
 
   /**
@@ -585,20 +569,15 @@ class Request implements RequestInterface
    *
    * 如果请求需要非 origin-form 请求目标（例如，为了指定 absolute-form、authority-form 或 asterisk-form），则可以使用此方法创建具有指定请求目标的实例。
    *
-   * 此方法必须以保持消息的不可变性的方式实现，并且必须返回具有更改的请求目标的实例。
-   *
    * @link http://tools.ietf.org/html/rfc7230#section-5.3（用于请求消息中允许的各种请求目标形式）
    * @param string $requestTarget
    * @return static
    */
   public function withRequestTarget(string $requestTarget): RequestInterface
   {
-    $newRequest = clone $this;
-
-    // 设置新地请求目标
-    $newRequest->swooleRequest->server['path_info'] = $requestTarget;
-    $newRequest->swooleRequest->server['request_uri'] = $requestTarget;
-    return $newRequest;
+    $this->swooleRequest->server['path_info'] = $requestTarget;
+    $this->swooleRequest->server['request_uri'] = $requestTarget;
+    return $this;
   }
 
   /**
@@ -610,9 +589,8 @@ class Request implements RequestInterface
    */
   public function withMethod(string $method): RequestInterface
   {
-    $newRequest = clone $this;
-    $newRequest->swooleRequest->server['request_method'] = strtoupper($method);
-    return $newRequest;
+    $this->swooleRequest->server['request_method'] = strtoupper($method);
+    return $this;
   }
 
   /**
@@ -638,10 +616,9 @@ class Request implements RequestInterface
    */
   public function withUri(UriInterface $uri, bool $preserveHost = false): RequestInterface
   {
-    $newRequest = clone $this;
-    $newRequest->uri = $uri;
-    if (!$preserveHost) $newRequest->swooleRequest->header['host'] = $uri->getAuthority();
-    return $newRequest;
+    $this->uri = $uri;
+    if (!$preserveHost) $this->swooleRequest->header['host'] = $uri->getAuthority();
+    return $this;
   }
 
   /**
@@ -662,21 +639,16 @@ class Request implements RequestInterface
    *
    * 版本字符串必须只包含HTTP版本号（例如，"1.1"，"1.0"）。
    *
-   * 此方法必须以保持消息的不可变性的方式实现，并且必须返回具有新协议版本的实例。
-   *
    * @param string $version HTTP协议版本
    * @return static
    */
   public function withProtocolVersion(string $version): static
   {
-    // 使用Swoole的create方法创建新的请求对象
-    $newRequest = clone $this;
 
-    // 设置新地请求目标
-    $newRequest->swooleRequest->server['server_protocol'] = $version;
+    $this->swooleRequest->server['server_protocol'] = $version;
 
     // 创建自定义请求对象并返回
-    return $newRequest;
+    return $this;
   }
 
   /**
@@ -728,11 +700,10 @@ class Request implements RequestInterface
   public function withHeader(string $name, $value): RequestInterface
   {
     Header::validate($name, $value);
-    $newRequest = clone $this;
-    $newRequest->swooleRequest->header[strtolower($name)] = is_array($value)
+    $this->swooleRequest->header[strtolower($name)] = is_array($value)
       ? implode(',', $value)
       : $value;
-    return $newRequest;
+    return $this;
   }
 
   /**
@@ -747,16 +718,15 @@ class Request implements RequestInterface
   {
     Header::validate($name, $value);
     $name = strtolower($name);
-    $newRequest = clone $this;
     // 添加请求标头
-    if (empty($newRequest->swooleRequest->header[$name])) {
-      $newRequest->swooleRequest->header[$name] = is_array($value)
+    if (empty($this->swooleRequest->header[$name])) {
+      $this->swooleRequest->header[$name] = is_array($value)
         ? implode(',', $value)
         : $value;
     } else {
-      $newRequest->swooleRequest->header[$name] .= ",$value";
+      $this->swooleRequest->header[$name] .= ",$value";
     }
-    return $newRequest;
+    return $this;
   }
 
   /**
@@ -767,25 +737,23 @@ class Request implements RequestInterface
    */
   public function withoutHeader(string $name): static
   {
-    $newRequest = clone $this;
-    if (is_array($newRequest->swooleRequest->header)) {
+    if (is_array($this->swooleRequest->header)) {
       $lowercaseKey = strtolower($name);
       // 将数组键统一转换为小写并检查是否存在
-      $lowercaseArray = array_change_key_case($newRequest->swooleRequest->header);
+      $lowercaseArray = array_change_key_case($this->swooleRequest->header);
       $realKey = array_search($lowercaseKey, array_keys($lowercaseArray));
       if ($realKey !== false) {
-        $keys = array_keys($newRequest->swooleRequest->header);
+        $keys = array_keys($this->swooleRequest->header);
         $key = $keys[$realKey];
-        unset($newRequest->swooleRequest->header[$key]);
+        unset($this->swooleRequest->header[$key]);
       }
     }
-    return $newRequest;
+    return $this;
   }
 
   /**
    * 获取消息的主体。
    *
-   * 注意：获取到的消息主题是请求进入时的传入的主体
    * @return StreamInterface
    */
   public function getBody(): StreamInterface
@@ -803,18 +771,15 @@ class Request implements RequestInterface
    *
    * 主体必须是一个StreamInterface对象。
    *
-   * 此方法必须以保持消息的不可变性的方式实现，并且必须返回具有新主体流的新实例。
-   *
    * @param StreamInterface $body 主体。
-   * @return static
+   * @return RequestInterface
    * @throws InvalidArgumentException 当主体无效时。
    */
-  public function withBody(StreamInterface $body): static
+  public function withBody(StreamInterface $body): RequestInterface
   {
     // 检查主体是否有效
-    $newRequest = clone $this;
-    $newRequest->stream = $body;
-    return $newRequest;
+    $this->stream = $body;
+    return $this;
   }
 
   /**

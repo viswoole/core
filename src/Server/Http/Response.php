@@ -53,7 +53,7 @@ class Response implements ResponseInterface
    */
   protected array $headers = [
     'Access-Control-Allow-Origin' => '*',
-    'Access-Control-Allow-Headers' => 'Authorization, Timestamp ,Content-Type, If-Match, If-Modified-Since, If-None-Match, If-Unmodified-Since, X-Requested-With',
+    'Access-Control-Allow-Headers' => '*',
     'Access-Control-Allow-Methods' => 'GET,POST,PATCH,PUT,DELETE,OPTIONS,DELETE',
   ];
   /**
@@ -76,39 +76,52 @@ class Response implements ResponseInterface
   public function __construct(swooleResponse $response)
   {
     $this->swooleResponse = $response;
+    $this->setHeader(
+      'Content-Type',
+      \ViSwoole\Core\Server\Http\Facades\Request::getHeaderLine('accept') ?? '*'
+    );
   }
 
   /**
-   * 自定义实例化
+   * 设置响应头(可批量设置)
    *
+   * @access public
+   * @param string|array $name 不区分大小写标头或[$name=>$value]
+   * @param array|string|null $value 标头值
    * @return ResponseInterface
    */
-  public static function __make(): ResponseInterface
+  public function setHeader(array|string $name, array|string|null $value = null): ResponseInterface
   {
-    return Context::get(__CLASS__, Coroutine::getTopId());
+    if (is_array($name)) {
+      foreach ($name as $headerName => $headerValue) {
+        Header::validate($headerName, $headerValue);
+        $newName = Header::hasHeader($headerName, $this->headers);
+        if (is_bool($newName)) $newName = Header::formatName($headerName);
+        $this->headers[$newName] = is_array($headerValue) ? implode(
+          ',', $headerValue
+        ) : $headerValue;
+      }
+    } else {
+      if (empty($value)) throw new InvalidArgumentException('响应标头值不可为空');
+      Header::validate($name, $value);
+      $newName = Header::hasHeader($name, $this->headers);
+      if (is_bool($newName)) $newName = Header::formatName($name);
+      $this->headers[$newName] = is_array($value) ? implode(',', $value) : $value;
+    }
+    return $this;
   }
 
   /**
-   * 检索 HTTP 协议版本号作为字符串。
+   * 检查是否存在给定不区分大小写名称的标头。
    *
-   * @return string HTTP 版本号（例如，"1.1"，"1.0"）。
+   * @param string $name 不区分大小写的标头字段名称。
+   * @return bool 如果任何标头名称与给定的标头名称使用不区分大小写的字符串比较匹配，则返回 true。
+   * 如果消息中没有找到匹配的标头名称，则返回 false。
    */
-  public function getProtocolVersion(): string
+  public function hasHeader(string $name): bool
   {
-    return $this->protocolVersion;
-  }
-
-  /**
-   * 返回具有指定的 HTTP 协议版本的实例。
-   *
-   * @param string $version HTTP 版本号（例如，"1.1"，"1.0"）。
-   * @return ResponseInterface
-   */
-  public function withProtocolVersion(string $version): ResponseInterface
-  {
-    $newResponse = clone $this;
-    $newResponse->protocolVersion = $version;
-    return $newResponse;
+    $lowercaseArray = array_change_key_case($this->headers);
+    return array_key_exists(strtolower($name), $lowercaseArray);
   }
 
   /**
@@ -146,6 +159,38 @@ class Response implements ResponseInterface
   }
 
   /**
+   * 自定义实例化
+   *
+   * @return ResponseInterface
+   */
+  public static function __make(): ResponseInterface
+  {
+    return Context::get(__CLASS__, Coroutine::getTopId());
+  }
+
+  /**
+   * 检索 HTTP 协议版本号作为字符串。
+   *
+   * @return string HTTP 版本号（例如，"1.1"，"1.0"）。
+   */
+  public function getProtocolVersion(): string
+  {
+    return $this->protocolVersion;
+  }
+
+  /**
+   * 返回具有指定的 HTTP 协议版本的实例。
+   *
+   * @param string $version HTTP 版本号（例如，"1.1"，"1.0"）。
+   * @return ResponseInterface
+   */
+  public function withProtocolVersion(string $version): ResponseInterface
+  {
+    $this->protocolVersion = $version;
+    return $this;
+  }
+
+  /**
    * 检索所有消息头的值。
    *
    * 该方法返回所有标头和值的字符串，这些值使用逗号拼接在一起。
@@ -169,9 +214,9 @@ class Response implements ResponseInterface
   }
 
   /**
-   * 返回具有指定值附加到给定值的标头的实例。
-   *
-   * 将保留指定标头的现有值。新值将附加到现有列表中。如果标头以前不存在，则将其添加。
+   * 将保留指定标头的现有值。
+   * 新值将附加到现有列表中。
+   * 如果标头以前不存在，则将其添加。
    *
    * @param string $name 不区分大小写的标头字段名称。
    * @param string|string[] $value 标头值。
@@ -181,32 +226,18 @@ class Response implements ResponseInterface
   public function withAddedHeader(string $name, $value): ResponseInterface
   {
     Header::validate($name, $value);
-    $newRequest = clone $this;
-    $newName = Header::hasHeader($name, $newRequest->headers);
+    $newName = Header::hasHeader($name, $this->headers);
     if (is_bool($newName)) {
       $newName = Header::formatName($name);
     }
-    if (is_array($newRequest->headers[$newName])) {
+    if (is_array($this->headers[$newName])) {
       if (is_string($value)) $value = explode(',', $value);
-      $newRequest->headers[$newName] = array_merge($newRequest->headers[$newName], $value);
+      $this->headers[$newName] = array_merge($this->headers[$newName], $value);
     } else {
       if (is_array($value)) $value = implode(',', $value);
-      $newRequest->headers[$newName] .= $value;
+      $this->headers[$newName] .= $value;
     }
-    return $newRequest;
-  }
-
-  /**
-   * 检查是否存在给定不区分大小写名称的标头。
-   *
-   * @param string $name 不区分大小写的标头字段名称。
-   * @return bool 如果任何标头名称与给定的标头名称使用不区分大小写的字符串比较匹配，则返回 true。
-   * 如果消息中没有找到匹配的标头名称，则返回 false。
-   */
-  public function hasHeader(string $name): bool
-  {
-    $lowercaseArray = array_change_key_case($this->headers);
-    return array_key_exists(strtolower($name), $lowercaseArray);
+    return $this;
   }
 
   /**
@@ -222,13 +253,10 @@ class Response implements ResponseInterface
   public function withoutHeader(string $name): ResponseInterface
   {
     $name = Header::hasHeader($name, $this->headers);
-    if (false === $name) {
-      return $this;
-    } else {
-      $newRequest = clone $this;
-      unset($newRequest->headers[$name]);
-      return $newRequest;
+    if (false !== $name) {
+      unset($this->headers[$name]);
     }
+    return $this;
   }
 
   /**
@@ -244,9 +272,8 @@ class Response implements ResponseInterface
    */
   public function withBody(StreamInterface $body): ResponseInterface
   {
-    $newRequest = clone $this;
-    $newRequest->stream = $body;
-    return $newRequest;
+    $this->stream = $body;
+    return $this;
   }
 
   /**
@@ -285,7 +312,7 @@ class Response implements ResponseInterface
   }
 
   /**
-   * 发送响应
+   * 发送响应(当request进程结束时会自动调用该方法)
    *
    * @access public
    * @param string|null $content
@@ -297,7 +324,7 @@ class Response implements ResponseInterface
       foreach ($this->headers as $k => $v) {
         $this->getSwooleResponse()->setHeader($k, $v);
       }
-      $this->getSwooleResponse()->setStatusCode($this->statusCode);
+      $this->getSwooleResponse()->setStatusCode($this->statusCode, $this->reasonPhrase);
       if ($content === null) $content = $this->getBody()->getContents();
       if ($this->messageEchoToConsole) {
         $fd = $this->getSwooleResponse()->fd;
@@ -315,36 +342,6 @@ class Response implements ResponseInterface
     } else {
       return false;
     }
-  }
-
-  /**
-   * 设置响应头(可批量设置) 影响当前响应对象
-   *
-   * @access public
-   * @param string|array $name 不区分大小写标头或[$name=>$value]
-   * @param array|string|null $value 标头值
-   * @return ResponseInterface
-   */
-  public function setHeader(array|string $name, array|string|null $value = null): ResponseInterface
-  {
-    $newResponse = $this;
-    if (is_array($name)) {
-      foreach ($name as $headerName => $headerValue) {
-        Header::validate($headerName, $headerValue);
-        $newName = Header::hasHeader($headerName, $newResponse->headers);
-        if (is_bool($newName)) $newName = Header::formatName($headerName);
-        $newResponse->headers[$newName] = is_array($headerValue) ? implode(
-          ',', $headerValue
-        ) : $headerValue;
-      }
-    } else {
-      if (empty($value)) throw new InvalidArgumentException('响应标头值不可为空');
-      Header::validate($name, $value);
-      $newName = Header::hasHeader($name, $newResponse->headers);
-      if (is_bool($newName)) $newName = Header::formatName($name);
-      $newResponse->headers[$newName] = is_array($value) ? implode(',', $value) : $value;
-    }
-    return $newResponse;
   }
 
   /**
@@ -390,15 +387,13 @@ class Response implements ResponseInterface
   public function setContentType(string $contentType = 'application/json', string $charset = 'utf-8'
   ): ResponseInterface
   {
-    return $this->withHeader('Content-Type', "$contentType; charset=$charset");
+    return $this->setHeader('Content-Type', "$contentType; charset=$charset");
   }
 
   /**
    * 返回一个具有指定值，替换指定标头的实例。
    *
    * 虽然标头名称不区分大小写，但此函数会保留标头的大小写，并从 getHeaders() 返回。
-   *
-   * 此方法必须以保持消息的不可变性的方式实现，并且必须返回具有新标头和/或值的实例。
    *
    * @param string $name 不区分大小写的标头字段名称，自动格式化为合法标头。
    * @param string|string[] $value 标头值（们）。
@@ -408,11 +403,10 @@ class Response implements ResponseInterface
   public function withHeader(string $name, $value): ResponseInterface
   {
     Header::validate($name, $value);
-    $newResponse = clone $this;
-    $newName = Header::hasHeader($name, $newResponse->headers);
+    $newName = Header::hasHeader($name, $this->headers);
     if ($newName === false) $newName = Header::formatName($name);
-    $newResponse->headers[$newName] = is_array($value) ? implode(',', $value) : $value;
-    return $newResponse;
+    $this->headers[$newName] = is_array($value) ? implode(',', $value) : $value;
+    return $this;
   }
 
   /**
@@ -448,11 +442,10 @@ class Response implements ResponseInterface
    */
   public function json(object|array $data, int $statusCode = 200): ResponseInterface
   {
-    $newResponse = clone $this;
-    $newResponse->headers['Content-Type'] = 'application/json; charset=utf-8';
-    $newResponse->setContent(json_encode($data, $this->jsonFlags));
-    $newResponse->statusCode = $statusCode;
-    return $newResponse;
+    $this->headers['Content-Type'] = 'application/json; charset=utf-8';
+    $this->setContent(json_encode($data, $this->jsonFlags));
+    $this->statusCode = $statusCode;
+    return $this;
   }
 
   /**
@@ -464,8 +457,8 @@ class Response implements ResponseInterface
    */
   public function setContent(string $content): ResponseInterface
   {
-    $this->stream = FileStream::create('php://memory', 'r+');
-    $this->stream->write($content);
+    $this->getBody()->seek(0);
+    $this->getBody()->write($content);
     return $this;
   }
 
@@ -562,7 +555,7 @@ class Response implements ResponseInterface
   }
 
   /**
-   * 设置HTTP状态(影响当前实例)
+   * 设置HTTP状态 static::withStatus() 方法别名
    *
    * @access public
    * @param int $statusCode 状态码
@@ -571,31 +564,7 @@ class Response implements ResponseInterface
    */
   public function setCode(int $statusCode, string $reasonPhrase = ''): ResponseInterface
   {
-    // 检查状态码是否有效
-    if ($statusCode < 100 || $statusCode >= 600) {
-      throw new InvalidArgumentException(
-        'Invalid HTTP status code, correct value should be between 100 and 599 '
-      );
-    }
-    $this->statusCode = $statusCode;
-    if (empty($reasonPhrase)) {
-      $reasonPhrase = Status::getReasonPhrase($statusCode);
-    }
-    $this->reasonPhrase = $reasonPhrase;
-    return $this;
-  }
-
-  /**
-   * 获取与状态代码相关联的响应原因短语。
-   *
-   * 由于响应状态行中的原因短语不是必需元素，原因短语值可以为 null。实现可以选择返回响应状态代码的 RFC 7231 推荐原因短语
-   * （或 IANA HTTP 状态码注册中的原因短语列表）作为默认值。
-   *
-   * @return string 原因短语；如果没有则必须返回一个空字符串。
-   */
-  public function getReasonPhrase(): string
-  {
-    return $this->reasonPhrase;
+    return $this->withStatus($statusCode, $reasonPhrase);
   }
 
   /**
@@ -616,13 +585,25 @@ class Response implements ResponseInterface
         'Invalid HTTP status code, correct value should be between 100 and 599 '
       );
     }
-    $newRequest = clone $this;
-    $newRequest->statusCode = $code;
+    $this->statusCode = $code;
     if (empty($reasonPhrase)) {
       $reasonPhrase = Status::getReasonPhrase($code);
     }
-    $newRequest->reasonPhrase = $reasonPhrase;
-    return $newRequest;
+    $this->reasonPhrase = $reasonPhrase;
+    return $this;
+  }
+
+  /**
+   * 获取与状态代码相关联的响应原因短语。
+   *
+   * 由于响应状态行中的原因短语不是必需元素，原因短语值可以为 null。实现可以选择返回响应状态代码的 RFC 7231 推荐原因短语
+   * （或 IANA HTTP 状态码注册中的原因短语列表）作为默认值。
+   *
+   * @return string 原因短语；如果没有则必须返回一个空字符串。
+   */
+  public function getReasonPhrase(): string
+  {
+    return $this->reasonPhrase;
   }
 
   /**
