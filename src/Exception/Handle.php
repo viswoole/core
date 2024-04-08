@@ -17,7 +17,11 @@ namespace ViSwoole\Core\Exception;
 
 use Throwable;
 use ViSwoole\Core\App;
+use ViSwoole\Core\Server\Http\Response;
 
+/**
+ * 异常处理类
+ */
 class Handle
 {
   protected array $ignoreReport = [
@@ -25,6 +29,10 @@ class Handle
     ValidateException::class,
     RouteNotFoundException::class
   ];
+
+  public function __construct(protected Response $response, protected App $app)
+  {
+  }
 
   /**
    * 处理异常
@@ -35,29 +43,58 @@ class Handle
   public function render(Throwable $e): bool
   {
     $code = 500;
-    $isHttpException = false;
     if ($e instanceof HttpException) {
-      $isHttpException = true;
       $code = $e->getHttpCode();
+      $this->response->setHeader($e->getHeaders());
     } else {
       $this->report($e);
     }
-    if ($e instanceof BaseException || $e instanceof BaseRuntimeException) {
-      $data = $e->getErrorInfo();
-    } else {
-      $data = [
-        'errCode' => $e->getCode(),
-        'errMsg' => $e->getMessage(),
-      ];
-      if (!$isHttpException && App::factory()->isDebug()) {
-        $data['trace'] = $e->getTrace();
-      }
-    }
-    return true;
+    return $this->response->exception(
+      $e->getMessage(),
+      $e->getCode(),
+      $code,
+      $this->app->isDebug() ? $e->getTrace() : null
+    )->send();
   }
 
-  public function report(Throwable $e)
+  /**
+   * 写入日志
+   *
+   * @param Throwable $e
+   * @return void
+   */
+  public function report(Throwable $e): void
   {
+    if (!$this->isIgnoreReport($e)) {
+      $data = [
+        'code' => $e->getCode(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => $e->getTrace(),
+      ];
+      if (method_exists($e, 'logLevel')) {
+        $level = $e->logLevel();
+      } elseif (property_exists($e, 'logLevel')) {
+        $level = $e->logLevel;
+      }
+      if (!isset($level)) $level = 'error';
+      // 记录异常到日志
+      $this->app->log->log($level, $e->getMessage(), $data);
+    }
+  }
 
+  /**
+   * 判断是否被忽视不写入日志
+   * @param Throwable $exception
+   * @return bool
+   */
+  protected function isIgnoreReport(Throwable $exception): bool
+  {
+    foreach ($this->ignoreReport as $class) {
+      if ($exception instanceof $class) {
+        return true;
+      }
+    }
+    return false;
   }
 }
