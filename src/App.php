@@ -17,6 +17,8 @@ namespace ViSwoole\Core;
 
 use ViSwoole\Core\Contract\RequestInterface;
 use ViSwoole\Core\Contract\ResponseInterface;
+use ViSwoole\Core\Server\Http\Request;
+use ViSwoole\Core\Server\Http\Response;
 use ViSwoole\Log\LogManager;
 
 /**
@@ -30,6 +32,8 @@ use ViSwoole\Log\LogManager;
  * @property Server $server 服务管理实例
  * @property MiddlewareManager $middleware 服务管理实例
  * @property LogManager $log 日志管理实例
+ * @property Request $request 请求实例
+ * @property Response $response 响应实例
  */
 class App extends Container
 {
@@ -43,6 +47,10 @@ class App extends Container
     'validate' => Validate::class,
     'server' => Server::class,
     'middleware' => MiddlewareManager::class,
+    'request' => Request::class,
+    RequestInterface::class => Request::class,
+    'response' => Response::class,
+    ResponseInterface::class => Response::class,
   ];
   /**
    * @var array 定义需要排除的类/接口，每次通过容器反射执行该类时都会重新实例化
