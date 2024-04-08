@@ -17,11 +17,7 @@ namespace ViSwoole\Core\Exception;
 
 use Throwable;
 use ViSwoole\Core\App;
-use ViSwoole\Core\Server\Http\Response;
 
-/**
- * 异常处理类
- */
 class Handle
 {
   protected array $ignoreReport = [
@@ -29,10 +25,6 @@ class Handle
     ValidateException::class,
     RouteNotFoundException::class
   ];
-
-  public function __construct(protected Response $response, protected App $app)
-  {
-  }
 
   /**
    * 处理异常
@@ -43,58 +35,29 @@ class Handle
   public function render(Throwable $e): bool
   {
     $code = 500;
+    $isHttpException = false;
     if ($e instanceof HttpException) {
+      $isHttpException = true;
       $code = $e->getHttpCode();
-      $this->response->setHeader($e->getHeaders());
     } else {
       $this->report($e);
     }
-    return $this->response->exception(
-      $e->getMessage(),
-      $e->getCode(),
-      $code,
-      $this->app->isDebug() ? $e->getTrace() : null
-    )->send();
-  }
-
-  /**
-   * 写入日志
-   *
-   * @param Throwable $e
-   * @return void
-   */
-  public function report(Throwable $e): void
-  {
-    if (!$this->isIgnoreReport($e)) {
+    if ($e instanceof BaseException || $e instanceof BaseRuntimeException) {
+      $data = $e->getErrorInfo();
+    } else {
       $data = [
-        'code' => $e->getCode(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
-        'trace' => $e->getTrace(),
+        'errCode' => $e->getCode(),
+        'errMsg' => $e->getMessage(),
       ];
-      if (method_exists($e, 'logLevel')) {
-        $level = $e->logLevel();
-      } elseif (property_exists($e, 'logLevel')) {
-        $level = $e->logLevel;
+      if (!$isHttpException && App::factory()->isDebug()) {
+        $data['trace'] = $e->getTrace();
       }
-      if (!isset($level)) $level = 'error';
-      // 记录异常到日志
-      $this->app->log->log($level, $e->getMessage(), $data);
     }
+    return true;
   }
 
-  /**
-   * 判断是否被忽视不写入日志
-   * @param Throwable $exception
-   * @return bool
-   */
-  protected function isIgnoreReport(Throwable $exception): bool
+  public function report(Throwable $e)
   {
-    foreach ($this->ignoreReport as $class) {
-      if ($exception instanceof $class) {
-        return true;
-      }
-    }
-    return false;
+
   }
 }
