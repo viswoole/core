@@ -16,7 +16,7 @@ declare (strict_types=1);
 namespace ViSwoole\Core;
 
 use ReflectionClass;
-use ViSwoole\Core\Exception\BaseRuntimeException;
+use RuntimeException;
 
 /**
  * 事件管理器
@@ -90,7 +90,7 @@ class Event
           ];
         }
       } else {
-        throw new BaseRuntimeException("{$event}事件监听的处理类{$handle}未定义");
+        throw new RuntimeException("{$event}事件监听的处理类{$handle}未定义");
       }
     } else {
       $this->listens[$event][] = [
