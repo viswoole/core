@@ -15,8 +15,6 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
-use ViSwoole\Core\Exception\BaseException;
-
 /**
  * 配置文件管理类
  */
@@ -164,7 +162,6 @@ class Config
    * @param string|array $key 键
    * @param mixed|null $value 值
    * @return void
-   * @throws BaseException
    */
   public function set(string|array $key, mixed $value = null): void
   {

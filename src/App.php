@@ -42,15 +42,10 @@ class App extends Container
    * @var ServiceProvider[] 服务列表
    */
   protected array $services = [];
-  /**
-   * @var bool 是否开启调试模式
-   */
-  protected bool $debug;
 
   protected function __construct()
   {
     parent::__construct();
-    $this->debug = $this->config->get('app.debug', false);
     $this->initialize();
   }
 
@@ -131,6 +126,28 @@ class App extends Container
   protected function bootService(): void
   {
     foreach ($this->services as $service) $service->boot();
+  }
+
+  /**
+   * 是否debug调试模式
+   *
+   * @return bool
+   */
+  public function isDebug(): bool
+  {
+    return $this->config->get('app.debug', false);
+  }
+
+  /**
+   * 设置是否启用debug模式
+   *
+   * @access public
+   * @param bool $debug
+   * @return void
+   */
+  public function setDebug(bool $debug): void
+  {
+    $this->config->set('app.debug', $debug);
   }
 
   /**
