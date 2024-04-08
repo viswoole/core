@@ -42,9 +42,9 @@ abstract class Facade
     $class = static::getFacadeClass();
     if (static::$alwaysNewInstance) {
       // 每次都创建新的实例
-      return Container::factory()->invokeClass($class);
+      return App::factory()->invokeClass($class);
     } else {
-      return Container::factory()->make($class);
+      return App::factory()->make($class);
     }
   }
 
