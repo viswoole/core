@@ -15,10 +15,12 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Exception;
 
+use RuntimeException;
+
 /**
  * 容器异常
  */
-class ContainerException extends BaseRuntimeException
+class ContainerException extends RuntimeException
 {
 
 }

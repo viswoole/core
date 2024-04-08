@@ -15,12 +15,13 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Exception;
 
+use RuntimeException;
 use Throwable;
 
 /**
  * HTTP异常
  */
-class HttpException extends BaseRuntimeException
+class HttpException extends RuntimeException
 {
   /**
    * @var int HTTP响应状态码
