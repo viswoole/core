@@ -26,7 +26,6 @@ use ViSwoole\Core\Facade;
 /**
  * HTTP请求对象
  *
- * @method static RequestInterface __make() 获取当前实例
  * @method static mixed get(?string $key, mixed $default) 获取get参数
  * @method static array getServerParams() 检索服务器参数。
  * @method static array getCookieParams() 检索 Cookie。
