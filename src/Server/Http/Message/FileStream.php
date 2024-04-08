@@ -204,7 +204,7 @@ class FileStream implements StreamInterface
     if (!is_resource($this->stream)) return false;
     return in_array(
       stream_get_meta_data($this->stream)['mode'],
-      ['r+', 'w', 'w+', 'a', 'a+', 'x', 'x+']
+      ['r+b', 'wb', 'w+b', 'ab', 'a+b', 'xb', 'x+b']
     );
   }
 
@@ -237,7 +237,7 @@ class FileStream implements StreamInterface
     if (!is_resource($this->stream)) return false;
     return in_array(
       stream_get_meta_data($this->stream)['mode'],
-      ['r', 'r+', 'w+', 'a+', 'x+']
+      ['rb', 'r+b', 'w+b', 'a+b', 'x+b']
     );
   }
 
@@ -245,8 +245,7 @@ class FileStream implements StreamInterface
    * 读取整个流的内容并返回。
    *
    * @return string
-   * @throws RuntimeException if unable to read or an error occurs while
-   *     reading.
+   * @throws RuntimeException if unable to read or an error occurs while reading.
    */
   public function getContents(): string
   {
@@ -254,7 +253,7 @@ class FileStream implements StreamInterface
       throw new RuntimeException('FileStream is not readable.');
     }
     // 读取整个流的内容并返回
-    return stream_get_contents($this->stream);
+    return stream_get_contents($this->stream, -1, 0);
   }
 
   /**
