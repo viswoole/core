@@ -15,6 +15,8 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
+use ViSwoole\Log\LogManager;
+
 /**
  * App基础容器类
  *
@@ -25,6 +27,7 @@ namespace ViSwoole\Core;
  * @property Validate $validate 验证器
  * @property Server $server 服务管理实例
  * @property MiddlewareManager $middleware 服务管理实例
+ * @property LogManager $log 日志管理实例
  */
 class App extends Container
 {
@@ -33,6 +36,7 @@ class App extends Container
     'env' => Env::class,
     'config' => Config::class,
     'console' => Console::class,
+    'log' => LogManager::class,
     'event' => Event::class,
     'validate' => Validate::class,
     'server' => Server::class,
