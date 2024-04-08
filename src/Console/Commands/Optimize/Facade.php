@@ -67,7 +67,7 @@ class Facade extends Command
       foreach ($methods as $method) {
         $name = $method->getName();
         // 如果是魔术方法则跳出本循环
-        if (str_starts_with($name, '__')) {
+        if (str_starts_with($name, '__') || $method->isStatic()) {
           continue;
         }
         $params = [];
@@ -186,3 +186,4 @@ class Facade extends Command
     file_put_contents($file, $newFileContents);
   }
 }
+
