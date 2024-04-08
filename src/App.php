@@ -15,6 +15,8 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
+use ViSwoole\Core\Contract\RequestInterface;
+use ViSwoole\Core\Contract\ResponseInterface;
 use ViSwoole\Log\LogManager;
 
 /**
@@ -41,6 +43,13 @@ class App extends Container
     'validate' => Validate::class,
     'server' => Server::class,
     'middleware' => MiddlewareManager::class,
+  ];
+  /**
+   * @var array 定义需要排除的类/接口，每次通过容器反射执行该类时都会重新实例化
+   */
+  protected array $exclude = [
+    RequestInterface::class,
+    ResponseInterface::class
   ];
   /**
    * @var ServiceProvider[] 服务列表

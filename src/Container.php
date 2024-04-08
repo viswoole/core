@@ -58,6 +58,10 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @var array
    */
   protected array $singleInstance = [];
+  /**
+   * @var string[] 定义需要排除的类/接口，每次通过容器反射执行该类时都会重新实例化
+   */
+  protected array $exclude = [];
 
   protected function __construct()
   {
@@ -113,6 +117,29 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   {
     if (!isset(self::$instance)) new static();
     return self::$instance;
+  }
+
+  /**
+   * 添加一个需要排除的类或接口名称
+   *
+   * @param string $class
+   * @return void
+   */
+  public function addExclude(string $class): void
+  {
+    $this->exclude[] = $class;
+  }
+
+  /**
+   * 移除一个需要排除的类或接口名称
+   *
+   * @access public
+   * @param string $class
+   * @return void
+   */
+  public function delExclude(string $class): void
+  {
+    unset($this->exclude[$class]);
   }
 
   /**
@@ -209,11 +236,12 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     if (isset($this->singleInstance[$key])) {
       return $this->singleInstance[$concrete];
     }
-    $result = $this->{($concrete instanceof Closure) ? 'invokeFunction' : 'invokeClass'}(
-      $concrete, $vars
+    $result = $this->{$concrete instanceof Closure ? 'invokeFunction' : 'invokeClass'}(
+      $concrete,
+      $vars
     );
-    // 缓存结果
-    $this->singleInstance[$key] = $result;
+    // 缓存单实例
+    if (!is_object($result) || !$this->isExclude($result)) $this->singleInstance[$key] = $result;
     return $result;
   }
 
@@ -233,6 +261,23 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       if (is_string($bind)) return $this->getTheRealConcrete($bind);
     }
     return $abstract;
+  }
+
+  /**
+   * 通过类名或接口、类实例判断是否已排除缓存为单例
+   *
+   * @param string|object $instance
+   * @return bool
+   */
+  public function isExclude(string|object $instance): bool
+  {
+    if (is_string($instance)) return in_array($instance, $this->exclude);
+    if (in_array(get_class($instance), $this->exclude)) return true;
+    // 遍历匹配整个列表，判断是否需要排除
+    foreach ($this->exclude as $exclude) {
+      if ($instance instanceof $exclude) return true;
+    }
+    return false;
   }
 
   /**
