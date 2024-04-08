@@ -361,7 +361,7 @@ class Response implements ResponseInterface
   }
 
   /**
-   * 创建响应对象
+   * 创建响应对象（该方法由框架内部调用，在接收到request事件时会自动调用该方法对swooleRequest进行代理）
    *
    * @param swooleResponse|null $response
    * @return ResponseInterface
