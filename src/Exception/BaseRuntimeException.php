@@ -22,20 +22,4 @@ use RuntimeException;
  */
 class BaseRuntimeException extends RuntimeException
 {
-  /**
-   * 获取错误信息
-   * @access public
-   * @return array
-   */
-  final public function getErrorInfo(): array
-  {
-    return config('app.debug', false) ? [
-      'errCode' => $this->code,
-      'errMsg' => $this->message,
-      'trace' => $this->getTrace()
-    ] : [
-      'errCode' => $this->code,
-      'errMsg' => $this->message,
-    ];
-  }
 }
