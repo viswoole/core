@@ -23,6 +23,7 @@ use ViSwoole\Core\Console\Output;
 use ViSwoole\Core\Contract\ResponseInterface;
 use ViSwoole\Core\Coroutine;
 use ViSwoole\Core\Coroutine\Context;
+use ViSwoole\Core\Server\Http\Facades\Request;
 use ViSwoole\Core\Server\Http\Message\FileStream;
 
 /**
@@ -43,7 +44,7 @@ class Response implements ResponseInterface
   /**
    * @var string 协议版本
    */
-  protected string $protocolVersion = '1.1';
+  protected string $protocolVersion;
   /**
    * @var string 状态描述短语
    */
@@ -59,7 +60,7 @@ class Response implements ResponseInterface
   /**
    * @var int json_encode flags 参数
    */
-  protected int $jsonFlags = JSON_UNESCAPED_UNICODE;
+  protected int $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
   /**
    * @var bool 是否把消息输出到控制台，建议在调试阶段使用
    */
@@ -78,8 +79,9 @@ class Response implements ResponseInterface
     $this->swooleResponse = $response;
     $this->setHeader(
       'Content-Type',
-      \ViSwoole\Core\Server\Http\Facades\Request::getHeaderLine('accept') ?? '*'
+      Request::getHeaderLine('accept') ?? '*'
     );
+    $this->protocolVersion = Request::getProtocolVersion();
   }
 
   /**
@@ -159,16 +161,6 @@ class Response implements ResponseInterface
   }
 
   /**
-   * 自定义实例化
-   *
-   * @return ResponseInterface
-   */
-  public static function __make(): ResponseInterface
-  {
-    return Context::get(__CLASS__, Coroutine::getTopId());
-  }
-
-  /**
    * 检索 HTTP 协议版本号作为字符串。
    *
    * @return string HTTP 版本号（例如，"1.1"，"1.0"）。
@@ -176,6 +168,16 @@ class Response implements ResponseInterface
   public function getProtocolVersion(): string
   {
     return $this->protocolVersion;
+  }
+
+  /**
+   * 自定义实例化
+   *
+   * @return ResponseInterface
+   */
+  public static function __make(): ResponseInterface
+  {
+    return Context::get(__CLASS__, Coroutine::getTopId());
   }
 
   /**
@@ -329,7 +331,7 @@ class Response implements ResponseInterface
       if ($this->messageEchoToConsole) {
         $fd = $this->getSwooleResponse()->fd;
         // 获得请求进入时间
-        $request_time_float = \ViSwoole\Core\Server\Http\Facades\Request::getSwooleRequest()
+        $request_time_float = Request::getSwooleRequest()
           ->server['request_time_float'];
         // 获取当前时间
         $current_time_float = microtime(true);
