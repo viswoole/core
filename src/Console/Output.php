@@ -71,16 +71,17 @@ class Output
   ): void
   {
     if (array_key_exists($color, self::COLORS)) $color = self::LEVEL_COLOR[$color];
+    $titleLength = strlen($title);
     $trace = self::getTrace($backtrace);
+    $traceLength = strlen($trace);
     $content = var_export($data, true);
-    $defaultLength = 50;
     $contentMaxLength = 0;
+    $minLength = 50;
     foreach (explode("\n", $content) as $row) {
       $len = mb_strlen($row);
       if ($len > $contentMaxLength) $contentMaxLength = $len;
     }
-
-    $rowLength = max($contentMaxLength, $defaultLength);
+    $rowLength = max($contentMaxLength, $titleLength, $traceLength, $minLength);
 
     echo $color . str_pad($title, $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
 
@@ -88,7 +89,12 @@ class Output
 
     echo $color . str_pad(
         $trace, $rowLength, '-', STR_PAD_BOTH
-      ) . PHP_EOL . PHP_EOL . self::COLORS['DEFAULT'];
+      ) . PHP_EOL;
+    if ($traceLength === $rowLength) {
+      echo $color . str_repeat('-', $rowLength) . PHP_EOL . PHP_EOL . self::COLORS['DEFAULT'];
+    } else {
+      echo PHP_EOL . self::COLORS['DEFAULT'];
+    }
   }
 
   /**
