@@ -40,7 +40,8 @@ abstract class ConnectionPool implements ConnectionPoolInterface
    * @param int|null $default_fill 默认填充长度,null为不填充
    */
   public function __construct(
-    protected int $max_size = self::DEFAULT_SIZE, ?int $default_fill = null
+    protected int $max_size = self::DEFAULT_SIZE,
+    ?int          $default_fill = null
   )
   {
     $this->pool = new Channel($max_size);
