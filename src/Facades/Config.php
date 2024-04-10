@@ -24,6 +24,7 @@ use ViSwoole\Core\Facade;
  * @method static bool has(string $name) 检测配置是否存在
  * @method static mixed get(string $name = null, mixed $default = null) 获取配置参数
  * @method static void set(string|array $key, mixed $value = null) 设置配置参数
+ * @method static string formatConfigKey(string $key) 格式化配置参数名称
  */
 class Config extends Facade
 {
