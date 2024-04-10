@@ -15,6 +15,7 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Channel;
 
+use BadMethodCallException;
 use Override;
 use ViSwoole\Core\Channel\Contract\ChannelManagerInterface;
 use ViSwoole\Core\Channel\Contract\ConnectionPoolInterface;
@@ -72,15 +73,12 @@ abstract class ChannelManager implements ChannelManagerInterface
   /**
    * @inheritDoc
    */
-  #[Override] public function getChannel(?string $channel_name = null): ConnectionPoolInterface
+  #[Override] public function setDefaultChannel(string $channel_name): void
   {
-    if (empty($this->channels)) throw new ChannelNotFoundException('通道列表为空');
-    if (empty($channel_alias)) $channel_alias = $this->defaultChannel;
-    if ($this->hasChannel($channel_alias)) {
-      return $this->channels[strtolower($channel_alias)];
-    } else {
-      throw new ChannelNotFoundException("通道{$channel_alias}不存在");
-    }
+    if (!$this->hasChannel($channel_name)) throw new ChannelNotFoundException(
+      "redis通道{$channel_name}不存在"
+    );
+    $this->defaultChannel = $channel_name;
   }
 
   /**
@@ -94,11 +92,26 @@ abstract class ChannelManager implements ChannelManagerInterface
   /**
    * @inheritDoc
    */
-  #[Override] public function setDefaultChannel(string $channel_name): void
+  public function __call(string $name, array $arguments)
   {
-    if (!$this->hasChannel($channel_name)) throw new ChannelNotFoundException(
-      "redis通道{$channel_name}不存在"
-    );
-    $this->defaultChannel = $channel_name;
+    if (method_exists(ConnectionPool::class, $name)) {
+      return call_user_func_array([$this->getChannel(), $name], $arguments);
+    } else {
+      throw new BadMethodCallException("方法{$name}不存在");
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  #[Override] public function getChannel(?string $channel_name = null): ConnectionPoolInterface
+  {
+    if (empty($this->channels)) throw new ChannelNotFoundException('通道列表为空');
+    if (empty($channel_alias)) $channel_alias = $this->defaultChannel;
+    if ($this->hasChannel($channel_alias)) {
+      return $this->channels[strtolower($channel_alias)];
+    } else {
+      throw new ChannelNotFoundException("通道{$channel_alias}不存在");
+    }
   }
 }

@@ -57,4 +57,13 @@ interface ChannelManagerInterface
    * @return void
    */
   public function addChannel(string $name, ConnectionPoolInterface $channel): void;
+
+  /**
+   * 实现__call魔术方法，将方法调用转发到通道连接池
+   *
+   * @param string $name
+   * @param array $arguments
+   * @return mixed
+   */
+  public function __call(string $name, array $arguments);
 }
