@@ -58,7 +58,7 @@ abstract class ChannelManager implements ChannelManagerInterface
     foreach ($channels as $name => $config) {
       run(function () use ($name, $config) {
         $connect = $this->createPool($config);
-        $this->addChannel($name, $connect);
+        $this->addChannel(strtolower($name), $connect);
       });
     }
   }
