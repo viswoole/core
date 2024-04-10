@@ -15,6 +15,8 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
+use ViSwoole\Core\Common\Str;
+
 /**
  * 配置文件管理类
  */
@@ -107,11 +109,22 @@ class Config
       // 如果值是数组，递归调用函数
       if (is_array($value)) $value = $this->recursiveArrayKeyToLower($value);
       // 将键转换为蛇形
-      $newKey = strtolower($key);
+      $newKey = $this->formatKey($key);
       // 将新的键值对添加到结果数组中
       $result[$newKey] = $value;
     }
     return $result;
+  }
+
+  /**
+   * 格式化key
+   *
+   * @param string $key
+   * @return string
+   */
+  protected function formatKey(string $key): string
+  {
+    return Str::camelCaseToSnakeCase($key);
   }
 
   /**
@@ -123,7 +136,7 @@ class Config
    */
   public function has(string $name): bool
   {
-    if (!$this->matchCase) $name = strtolower($name);
+    if (!$this->matchCase) $name = $this->formatKey($name);
     if (!str_contains($name, '.') && !array_key_exists($name, $this->config)) {
       return false;
     }
@@ -142,7 +155,7 @@ class Config
     if (empty($name)) return $this->config;
     // 不区分大小写处理
     $nameParts = (!$this->matchCase)
-      ? explode('.', strtolower($name))
+      ? explode('.', $this->formatKey($name))
       : explode('.', $name);
     $config = $this->config;
 
@@ -170,7 +183,7 @@ class Config
         $this->set($k, $v);
       }
     } else {
-      if (!$this->matchCase) $key = strtolower($key);
+      if (!$this->matchCase) $key = $this->formatKey($key);
       $keys = explode('.', $key);
       $refArray = &$this->config;
       foreach ($keys as $k) {
