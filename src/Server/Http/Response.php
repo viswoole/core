@@ -20,9 +20,9 @@ use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
 use Swoole\Http\Response as swooleResponse;
 use ViSwoole\Core\Console\Output;
-use ViSwoole\Core\Contract\ResponseInterface;
 use ViSwoole\Core\Coroutine;
 use ViSwoole\Core\Coroutine\Context;
+use ViSwoole\Core\Server\Contract\ResponseInterface;
 use ViSwoole\Core\Server\Http\Facades\Request;
 use ViSwoole\Core\Server\Http\Message\FileStream;
 

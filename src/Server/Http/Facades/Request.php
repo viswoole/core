@@ -20,8 +20,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 use Swoole\Http\Request as swooleRequest;
-use ViSwoole\Core\Contract\RequestInterface;
 use ViSwoole\Core\Facade;
+use ViSwoole\Core\Server\Contract\RequestInterface;
 
 /**
  * HTTP请求对象

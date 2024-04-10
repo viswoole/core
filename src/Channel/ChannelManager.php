@@ -16,8 +16,8 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Channel;
 
 use Override;
-use ViSwoole\Core\Contract\ChannelManagerInterface;
-use ViSwoole\Core\Contract\ConnectionPoolInterface;
+use ViSwoole\Core\Channel\Contract\ChannelManagerInterface;
+use ViSwoole\Core\Channel\Contract\ConnectionPoolInterface;
 use ViSwoole\Core\Exception\ChannelNotFoundException;
 use function Swoole\Coroutine\run;
 

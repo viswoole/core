@@ -13,7 +13,7 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Contract;
+namespace ViSwoole\Core\Channel\Contract;
 
 use ViSwoole\Core\Exception\ChannelNotFoundException;
 

@@ -15,7 +15,7 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
-use ViSwoole\Core\Contract\RequestInterface;
+use ViSwoole\Core\Server\Contract\RequestInterface;
 use ViSwoole\Core\Server\Http\Facades\Request;
 use ViSwoole\Core\Server\Http\Facades\Response;
 

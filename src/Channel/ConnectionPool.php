@@ -17,7 +17,7 @@ namespace ViSwoole\Core\Channel;
 
 use RuntimeException;
 use Swoole\Coroutine\Channel;
-use ViSwoole\Core\Contract\ConnectionPoolInterface;
+use ViSwoole\Core\Channel\Contract\ConnectionPoolInterface;
 use ViSwoole\Core\Exception\ConnectionPoolException;
 
 /**

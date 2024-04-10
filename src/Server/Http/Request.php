@@ -20,10 +20,10 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
 use Swoole\Http\Request as swooleRequest;
-use ViSwoole\Core\Contract\RequestInterface;
 use ViSwoole\Core\Coroutine;
 use ViSwoole\Core\Coroutine\Context;
 use ViSwoole\Core\Facades\Server;
+use ViSwoole\Core\Server\Contract\RequestInterface;
 use ViSwoole\Core\Server\Http\Message\FileStream;
 use ViSwoole\Core\Server\Http\Message\Uri;
 

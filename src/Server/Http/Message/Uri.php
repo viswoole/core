@@ -16,7 +16,7 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Server\Http\Message;
 
 use Psr\Http\Message\UriInterface;
-use ViSwoole\Core\Contract\RequestInterface;
+use ViSwoole\Core\Server\Contract\RequestInterface;
 
 class Uri implements UriInterface
 {

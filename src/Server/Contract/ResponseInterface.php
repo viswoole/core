@@ -13,7 +13,7 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Contract;
+namespace ViSwoole\Core\Server\Contract;
 
 use Swoole\Http\Response as swooleResponse;
 
