@@ -20,13 +20,20 @@ use RuntimeException;
 interface ConnectionPoolInterface
 {
   /**
+   * 该方法为pop方法的别名方法
+   *
+   * @see ConnectionPoolInterface::pop()
+   */
+  public function get(float $timeout = -1): mixed;
+
+  /**
    * 从连接池中获取一个连接
    *
    * @param float $timeout 超时时间
    * @return mixed
    * @throws RuntimeException 如果获取连接失败则会抛出异常
    */
-  public function get(float $timeout = -1): mixed;
+  public function pop(float $timeout = -1): mixed;
 
   /**
    * 归还一个连接到连接池中（必须实现）
