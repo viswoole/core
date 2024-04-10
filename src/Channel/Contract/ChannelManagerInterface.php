@@ -23,6 +23,18 @@ use ViSwoole\Core\Exception\ChannelNotFoundException;
 interface ChannelManagerInterface
 {
   /**
+   * 工厂单例模式
+   */
+  public static function factory(): ChannelManagerInterface;
+
+  /**
+   * 容器make实例化
+   *
+   * @return ChannelManagerInterface
+   */
+  public static function __make(): ChannelManagerInterface;
+
+  /**
    * 获取通道
    *
    * @param string|null $channel_name 如果传入null则为获取默认通道连接池

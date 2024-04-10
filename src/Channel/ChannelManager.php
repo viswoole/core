@@ -49,7 +49,7 @@ abstract class ChannelManager implements ChannelManagerInterface
    * @param array $channels 通道名称
    * @param string $defaultChannel
    */
-  public function __construct(
+  protected function __construct(
     array  $channels,
     string $defaultChannel
   )
@@ -77,6 +77,16 @@ abstract class ChannelManager implements ChannelManagerInterface
   #[Override] public function addChannel(string $name, ConnectionPoolInterface $channel): void
   {
     $this->channels[strtolower($name)] = $channel;
+  }
+
+  /**
+   * 容器make实例化
+   *
+   * @return ChannelManagerInterface
+   */
+  public static function __make(): ChannelManagerInterface
+  {
+    return static::factory();
   }
 
   /**
