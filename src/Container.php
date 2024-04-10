@@ -476,7 +476,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 获取容器中的对象实例
    *
    * @param string $id 标识或类完全限定名称
-   * @return object
+   * @return mixed
    */
   #[Override] public function get(string $id): mixed
   {

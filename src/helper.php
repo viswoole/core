@@ -16,6 +16,8 @@ declare (strict_types=1);
 // 该文件定义了一些常用助手函数
 
 
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use ViSwoole\Core\Console\Output;
 use ViSwoole\Core\Facades\App;
 use ViSwoole\Core\Facades\Config;
@@ -37,22 +39,13 @@ if (!function_exists('app')) {
    *
    * @param string|null $name 标识或接口,不传返回容器实例
    * @return mixed
+   * @throws ContainerExceptionInterface 容器异常
+   * @throws NotFoundExceptionInterface 未找到服务
    */
   function app(?string $name = null): mixed
   {
-    if (empty($name)) return App::single();
-    return App::get($name);
-  }
-}
-if (!function_exists('container')) {
-  /**
-   * 获取容器
-   *
-   * @return App
-   */
-  function container(): App
-  {
-    return app();
+    if (empty($name)) return \ViSwoole\Core\App::factory();
+    return \ViSwoole\Core\App::factory()->get($name);
   }
 }
 if (!function_exists('env')) {
@@ -74,7 +67,7 @@ if (!function_exists('config')) {
    *
    * @param string|null $name 配置名（支持二级 .号分割）
    * @param mixed|null $default 默认值
-   * @return mixed|object
+   * @return mixed
    */
   function config(string $name = null, mixed $default = null): mixed
   {
