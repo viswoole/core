@@ -13,7 +13,7 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core;
+namespace ViSwoole\Core\Channel;
 
 use RuntimeException;
 use Swoole\Coroutine\Channel;
