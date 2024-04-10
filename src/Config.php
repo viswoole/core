@@ -109,7 +109,7 @@ class Config
       // 如果值是数组，递归调用函数
       if (is_array($value)) $value = $this->recursiveArrayKeyToLower($value);
       // 将键转换为蛇形
-      $newKey = $this->formatKey($key);
+      $newKey = $this->formatConfigKey($key);
       // 将新的键值对添加到结果数组中
       $result[$newKey] = $value;
     }
@@ -119,12 +119,13 @@ class Config
   /**
    * 格式化key
    *
-   * @param string $key
-   * @return string
+   * @param string $key 配置参数名
+   * @return string 如果不区分大小写，则转换为蛇形
    */
-  protected function formatKey(string $key): string
+  public function formatConfigKey(string $key): string
   {
-    return Str::camelCaseToSnakeCase($key);
+    if (!$this->matchCase) return Str::camelCaseToSnakeCase($key);
+    return $key;
   }
 
   /**
@@ -136,7 +137,7 @@ class Config
    */
   public function has(string $name): bool
   {
-    if (!$this->matchCase) $name = $this->formatKey($name);
+    $name = $this->formatConfigKey($name);
     if (!str_contains($name, '.') && !array_key_exists($name, $this->config)) {
       return false;
     }
@@ -154,9 +155,7 @@ class Config
   {
     if (empty($name)) return $this->config;
     // 不区分大小写处理
-    $nameParts = (!$this->matchCase)
-      ? explode('.', $this->formatKey($name))
-      : explode('.', $name);
+    $nameParts = explode('.', $this->formatConfigKey($name));
     $config = $this->config;
 
     foreach ($nameParts as $part) {
@@ -183,7 +182,7 @@ class Config
         $this->set($k, $v);
       }
     } else {
-      if (!$this->matchCase) $key = $this->formatKey($key);
+      $key = $this->formatConfigKey($key);
       $keys = explode('.', $key);
       $refArray = &$this->config;
       foreach ($keys as $k) {
