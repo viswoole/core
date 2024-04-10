@@ -19,6 +19,7 @@ use BadMethodCallException;
 use Override;
 use ViSwoole\Core\Channel\Contract\ChannelManagerInterface;
 use ViSwoole\Core\Channel\Contract\ConnectionPoolInterface;
+use ViSwoole\Core\Common\Str;
 use ViSwoole\Core\Exception\ChannelNotFoundException;
 use function Swoole\Coroutine\run;
 
@@ -58,7 +59,7 @@ abstract class ChannelManager implements ChannelManagerInterface
     foreach ($channels as $name => $config) {
       run(function () use ($name, $config) {
         $connect = $this->createPool($config);
-        $this->addChannel(strtolower($name), $connect);
+        $this->addChannel(Str::camelCaseToSnakeCase($name), $connect);
       });
     }
   }
@@ -76,7 +77,7 @@ abstract class ChannelManager implements ChannelManagerInterface
    */
   #[Override] public function addChannel(string $name, ConnectionPoolInterface $channel): void
   {
-    $this->channels[strtolower($name)] = $channel;
+    $this->channels[Str::camelCaseToSnakeCase($name)] = $channel;
   }
 
   /**
@@ -105,7 +106,7 @@ abstract class ChannelManager implements ChannelManagerInterface
    */
   #[Override] public function hasChannel(string $channel_name): bool
   {
-    return isset($this->channels[strtolower($channel_name)]);
+    return isset($this->channels[Str::camelCaseToSnakeCase($channel_name)]);
   }
 
   /**
@@ -128,7 +129,7 @@ abstract class ChannelManager implements ChannelManagerInterface
     if (empty($this->channels)) throw new ChannelNotFoundException('通道列表为空');
     if (empty($channel_alias)) $channel_alias = $this->defaultChannel;
     if ($this->hasChannel($channel_alias)) {
-      return $this->channels[strtolower($channel_alias)];
+      return $this->channels[Str::camelCaseToSnakeCase($channel_alias)];
     } else {
       throw new ChannelNotFoundException("通道{$channel_alias}不存在");
     }
