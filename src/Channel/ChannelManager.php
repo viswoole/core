@@ -23,7 +23,16 @@ use ViSwoole\Core\Exception\ChannelNotFoundException;
 use function Swoole\Coroutine\run;
 
 /**
- * 连接池管理器基类
+ * 连接池通道管理基类
+ *
+ * @method mixed get(float $timeout = -1) 从连接池中获取一个连接
+ * @method void put(mixed $connection) 归还一个连接到连接池中（必须实现）
+ * @method bool isEmpty() 判断连接池中连接是否已经被取完或者为空
+ * @method bool close() 关闭连接池
+ * @method bool isFull() 判断当前连接池是否已满
+ * @method void fill(int $size = null) 填充连接
+ * @method int length() 获取连接池中当前剩余连接数量
+ * @method array stats() 获取连接池统计信息
  */
 abstract class ChannelManager implements ChannelManagerInterface
 {
