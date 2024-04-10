@@ -122,6 +122,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   /**
    * 添加一个需要排除的类或接口名称
    *
+   * @access public
    * @param string $class
    * @return void
    */
