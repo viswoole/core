@@ -18,6 +18,7 @@ namespace ViSwoole\Core;
 use RuntimeException;
 use Swoole\Coroutine\Channel;
 use ViSwoole\Core\Contract\ConnectionPoolInterface;
+use ViSwoole\Core\Exception\ConnectionPoolException;
 
 /**
  * Abstract ConnectionPool.
@@ -102,7 +103,7 @@ abstract class ConnectionPool implements ConnectionPoolInterface
     // 判断返回连接是否为NULL 和 连接是否可用 可用则归还连接
     if ($connection !== null && $this->connectionDetection($connection)) {
       $result = $this->pool->push($connection);
-      if ($result === false) throw new RuntimeException(
+      if ($result === false) throw new ConnectionPoolException(
         self::ERROR_MESSAGE[$this->pool->errCode],
         $this->pool->errCode
       );
@@ -132,7 +133,7 @@ abstract class ConnectionPool implements ConnectionPoolInterface
     if ($this->isEmpty() && $this->length() < $this->max_size) $this->make();
     // 获取连接
     $connection = $this->pool->pop($timeout);
-    if ($connection === false) throw new RuntimeException(
+    if ($connection === false) throw new ConnectionPoolException(
       self::ERROR_MESSAGE[$this->pool->errCode],
       $this->pool->errCode
     );
