@@ -154,7 +154,13 @@ class Facade extends Command
     $params = '';
     foreach ($data['params'] as $key => $structure) {
       $params .= " {$structure['type']} $$key";
-      $params .= $structure['isDefaultValueAvailable'] ? " = {$structure['default']}," : ',';
+      if ($structure['isDefaultValueAvailable']) {
+        $val = is_string(
+          $structure['default']
+        ) ? "'{$structure['default']}'" : $structure['default'];
+        $params .= $val;
+      }
+      $params .= ',';
     }
     $params = ltrim($params, ' ');
     $params = rtrim($params, ',');
