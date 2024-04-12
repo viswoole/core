@@ -17,10 +17,10 @@ namespace ViSwoole\Core;
 
 use Swoole\Constant;
 use Swoole\Server as SwooleServer;
-use ViSwoole\Core\Exception\Handle;
 use ViSwoole\Core\Server\Exception\ServerException;
 use ViSwoole\Core\Server\Exception\ServerNotFoundException;
 use ViSwoole\Core\Server\HookEventHandler;
+use ViSwoole\HttpServer\Exception\Handle;
 
 /**
  * Swoole服务管理
