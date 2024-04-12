@@ -20,9 +20,7 @@
     "viswoole/log": "@dev",
     "viswoole/cache": "@dev",
     "psr/container": ">=2.0.2",
-    "symfony/console": ">=v6.3.4",
-    "psr/http-message": ">=2.0",
-    "ext-fileinfo": "*"
+    "symfony/console": ">=v6.3.4"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5"
