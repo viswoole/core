@@ -40,7 +40,7 @@ interface ValidateInterface
    * @return bool
    * @throws ValidateException 验证失败会抛出异常
    */
-  public function check(array $data): bool;
+  public function check(array $data, bool $batch): bool;
 
   /**
    * 设置验证规则

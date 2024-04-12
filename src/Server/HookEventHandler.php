@@ -18,6 +18,7 @@ namespace ViSwoole\Core\Server;
 use Closure;
 use Swoole\Constant;
 use Swoole\Server as SwooleServer;
+use ViSwoole\Core\Facades\Event;
 
 /**
  * Hook Swoole Servers Event
@@ -48,7 +49,7 @@ class HookEventHandler
    */
   public static function onStart(SwooleServer $server): void
   {
-    \ViSwoole\Core\Facades\Event::emit('serverRun', ['server' => $server]);
+    Event::emit('serverRun', ['server' => $server]);
     self::runHook(__FUNCTION__, func_get_args());
   }
 
@@ -80,7 +81,7 @@ class HookEventHandler
    */
   public static function onShutdown(SwooleServer $server): void
   {
-    \ViSwoole\Core\Facades\Event::emit('serverEnd', ['server' => $server]);
+    Event::emit('serverEnd', ['server' => $server]);
     self::runHook(__FUNCTION__, func_get_args());
   }
 

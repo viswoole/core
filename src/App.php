@@ -15,10 +15,10 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
-use ViSwoole\Core\Server\Contract\RequestInterface;
-use ViSwoole\Core\Server\Contract\ResponseInterface;
-use ViSwoole\Core\Server\Http\Request;
-use ViSwoole\Core\Server\Http\Response;
+use ViSwoole\HttpServer\Contract\RequestInterface;
+use ViSwoole\HttpServer\Contract\ResponseInterface;
+use ViSwoole\HttpServer\Request;
+use ViSwoole\HttpServer\Response;
 use ViSwoole\Log\LogManager;
 
 /**
