@@ -29,6 +29,8 @@ use ViSwoole\Core\Server\Http\Message\Uri;
 
 /**
  * 该类用于Swoole\Http\Request类进行代理封装
+ *
+ * 实现了Psr\Http\Message\ServerRequestInterface接口，但with开头方法未遵循其不破坏原对象的原则。
  */
 class Request implements RequestInterface
 {

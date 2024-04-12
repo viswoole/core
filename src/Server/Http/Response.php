@@ -29,9 +29,10 @@ use ViSwoole\Core\Server\Http\Message\FileStream;
 /**
  * HTTP响应类
  *
- * 该类封装了Swoole\Http\Response类，并提供了一些额外的功能和特性。
+ * 实现了\Psr\Http\Message\ResponseInterface接口，但with开头方法未遵循其不破坏原对象的原则。
+ * 该类封装了Swoole\Http\Response类，并提供了一些额外的方法。
  * 如果想要调用Swoole\Http\Response类中的方法，实现更多功能，
- * 可调用getSwooleResponse()方法获取原始的Swoole\Http\Response对象。
+ * 可调用Response::getSwooleResponse()方法获取原始的Swoole\Http\Response对象。
  * 该类还实现了__call()魔术方法，如果调用的方法不存在于该类则会判断是否为Swoole\Http\Response对象的方法。
  * @link https://wiki.swoole.com/#/http_server?id=swoolehttpresponse
  */
