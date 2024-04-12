@@ -51,13 +51,9 @@ class Event
    */
   private function initListen(): void
   {
-    $defaultListenConfigPath = getRootPath() . '/config/event/listen.php';
-    if (is_file($defaultListenConfigPath)) {
-      $listen = include_once $defaultListenConfigPath;
-      $listen = is_array($listen) ? $listen : [];
-      foreach ($listen as $event => $handle) {
-        if (!empty($handle)) $this->on($event, $handle);
-      }
+    $listen = config('listens', []);
+    foreach ($listen as $event => $handle) {
+      if (!empty($handle)) $this->on($event, $handle);
     }
   }
 
@@ -103,14 +99,20 @@ class Event
   }
 
   /**
-   * 自定义实例化
+   * 容器make实例化
    */
   public static function __make(): static
   {
+    return self::factory();
+  }
+
+  /**
+   * 工厂单例模式
+   */
+  public static function factory(): static
+  {
     static $instance = null;
-    if ($instance === null) {
-      $instance = new static();
-    }
+    if ($instance === null) $instance = new static();
     return $instance;
   }
 
