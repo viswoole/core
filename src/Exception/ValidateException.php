@@ -14,10 +14,13 @@
 declare (strict_types=1);
 
 namespace ViSwoole\Core\Exception;
+
+use RuntimeException;
+
 /**
  * 数据验证异常
  */
-class ValidateException extends HttpException
+class ValidateException extends RuntimeException
 {
   /**
    * 验证错误信息
