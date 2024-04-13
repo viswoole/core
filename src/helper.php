@@ -33,6 +33,26 @@ if (!function_exists('getRootPath')) {
     return App::getRootPath();
   }
 }
+if (!function_exists('getVendorPath')) {
+  /**
+   * 获取依赖仓库路径,结尾不带/
+   * @return string
+   */
+  function getVendorPath(): string
+  {
+    return App::getVendorPath();
+  }
+}
+if (!function_exists('getConfigPath')) {
+  /**
+   * 获取配置仓库路径,结尾不带/
+   * @return string
+   */
+  function getConfigPath(): string
+  {
+    return App::getConfigPath();
+  }
+}
 if (!function_exists('app')) {
   /**
    * 获取服务或容器
