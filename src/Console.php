@@ -23,6 +23,7 @@ use ViSwoole\Core\Console\Commands\Server\ServerClose;
 use ViSwoole\Core\Console\Commands\Server\ServerReload;
 use ViSwoole\Core\Console\Commands\Server\ServerStart;
 use ViSwoole\Core\Console\Commands\ServiceDiscover;
+use ViSwoole\Core\Console\Commands\VendorPublish;
 
 /**
  * 命令行处理程序
@@ -33,9 +34,10 @@ class Console extends Application
     CommandDiscover::class,
     Console\Commands\Optimize\Facade::class,
     ServiceDiscover::class,
+    VendorPublish::class,
     ServerStart::class,
     ServerClose::class,
-    ServerReload::class
+    ServerReload::class,
   ];
 
   public function __construct(string $name = 'viswoole', string $version = '1.0.0')
