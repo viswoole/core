@@ -25,9 +25,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use ViSwoole\Core\Facades\App;
 
 #[AsCommand(
-  name       : 'vendor:publish',
+  name: 'vendor:publish',
   description: 'Automatically scans the configurations provided in the dependency package and clones the configuration files to the config/autoload directory at the root of the project.',
-  hidden     : false
+  hidden: false
 )]
 class VendorPublish extends Command
 {
@@ -56,7 +56,7 @@ class VendorPublish extends Command
       $configs = [];
       $vendorCount = 0;
       foreach ($packages as $package) {
-        if (!empty($package['extra']['viswoole']['config'])) {
+        if (!empty($package['extra']['viswoole']['configs'])) {
           $vendorCount++;
           $packageConfigs = (array)$package['extra']['viswoole']['configs'];
           foreach ($packageConfigs as &$c) {
@@ -83,7 +83,9 @@ class VendorPublish extends Command
           copy($file, $configDir . '/' . basename($file));
         }
       }
-      $io->success("已完成依赖包发布，共计发布 $count 个配置文件至{$configDir}目录下");
+      $io->success(
+        "已完成{$vendorCount}个依赖包发布，共计发布 $count 个配置文件至{$configDir}目录下"
+      );
     }
     return Command::SUCCESS;
   }
