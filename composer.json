@@ -38,5 +38,12 @@
     "psr-4": {
       "ViSwoole\\Core\\Tests\\": "tests"
     }
+  },
+  "extra": {
+    "viswoole": {
+      "configs": [
+        "config"
+      ]
+    }
   }
 }
