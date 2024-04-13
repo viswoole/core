@@ -58,7 +58,7 @@ class VendorPublish extends Command
       foreach ($packages as $package) {
         if (!empty($package['extra']['viswoole']['config'])) {
           $vendorCount++;
-          $packageConfigs = (array)$package['extra']['viswoole']['config'];
+          $packageConfigs = (array)$package['extra']['viswoole']['configs'];
           foreach ($packageConfigs as &$c) {
             $c = $vendorDir . '/' . $package['name']
               . (str_starts_with($c, '/') ? $c : '/' . $c);
