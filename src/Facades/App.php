@@ -39,6 +39,7 @@ use ViSwoole\Core\Facade;
  * @method static int count() 获取容器中实例的数量
  * @method static string getRootPath() 获取项目根路径
  * @method static string getVendorPath() 获取vendor路径
+ * @method static string getConfigPath() 获取vendor路径
  * @method static void setDebug(bool $debug) 设置是否启用debug模式
  * @method static bool isDebug() 是否启用debug模式
  * @method static void delExclude(string $class) 删除排除的类

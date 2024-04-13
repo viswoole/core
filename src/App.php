@@ -150,6 +150,16 @@ class App extends Container
   }
 
   /**
+   * 获取config路径
+   *
+   * @return string
+   */
+  public function getConfigPath(): string
+  {
+    return $this->getRootPath() . '/config';
+  }
+
+  /**
    * 是否debug调试模式
    *
    * @return bool
