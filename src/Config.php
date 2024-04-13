@@ -49,7 +49,7 @@ class Config
    */
   public function __construct(string $path = null, string $ext = '*', bool $matchCase = true)
   {
-    $this->path = $path ?: getRootPath() . '/config/autoload/';
+    $this->path = $path ?: getConfigPath();
     $this->ext = $ext;
     $this->matchCase = $matchCase;
     $this->loadConfig();
