@@ -19,9 +19,9 @@ use Closure;
 use InvalidArgumentException;
 use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
-use ViSwoole\Core\Validate\ParseRule;
-use ViSwoole\Core\Validate\ValidateExceptionMessage;
+use ViSwoole\Core\Validate\ValidateMessageTrait;
 use ViSwoole\Core\Validate\ValidateRule;
+use ViSwoole\Core\Validate\ValidateRuleTrait;
 
 /**
  * 数据验证器
@@ -30,8 +30,8 @@ use ViSwoole\Core\Validate\ValidateRule;
  */
 class Validate
 {
-  use ParseRule;
-  use ValidateExceptionMessage;
+  use ValidateRuleTrait;
+  use ValidateMessageTrait;
 
   /**
    * @var array 场景需要移除的验证规则
