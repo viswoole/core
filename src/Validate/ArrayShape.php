@@ -34,10 +34,18 @@ abstract class ArrayShape extends ArrayObject
    * @var array
    */
   protected array $rules = [];
+  /**
+   * @var array 解析过后的规则
+   */
+  private array $parseRules;
 
-  public function __construct(array $data)
+  /**
+   * @param array $data 数据
+   * @param string $parent 父级字段
+   */
+  public function __construct(array $data, private readonly string $parent = '')
   {
-    $this->rules = $this->parseRules($this->rules);
+    $this->parseRules = $this->parseRules($this->rules);
     parent::__construct($this->validate($data));
   }
 
@@ -50,20 +58,20 @@ abstract class ArrayShape extends ArrayObject
    */
   private function validate(array $data): array
   {
-    if (empty($this->rules)) throw new ValidateException('验证规则不能为空');
+    if (empty($this->parseRules)) throw new ValidateException('验证规则不能为空');
     $newData = [];
-    foreach ($this->rules as $field => $structure) {
+    foreach ($this->parseRules as $field => $structure) {
       // 字段别名或描述
-      $alias = $structure['alias'];
+      $alias = $this->parent . $structure['alias'];
       // 拿到待验证的规则 [rule=>params] | 闭包函数
       $rules = $structure['rules'];
       /** @var $value mixed 字段值，不存在则为null */
       $value = $data[$field] ?? null;
       // 开始验证
       if ($rules instanceof Closure) {
-        $result = $rules($value, $field, $alias);
+        $result = $rules($value, $alias);
         if ($result !== true) {
-          $message = is_string($result) ? $result : "$alias 验证失败";
+          $message = is_string($result) ? $result : "{$alias}验证失败";
           throw new ValidateException($message);
         }
       } else {
@@ -76,7 +84,7 @@ abstract class ArrayShape extends ArrayObject
         foreach ($rules as $rule => $params) {
           // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
           if (class_exists($rule) && is_subclass_of($rule, ArrayShape::class)) {
-            new $rule(is_array($value) ? $value : []);
+            new $rule(is_array($value) ? $value : [], "$alias.");
           } else {
             $result = ValidateRule::$rule($value, $params);
             if (!$result) {
