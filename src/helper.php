@@ -53,6 +53,17 @@ if (!function_exists('getConfigPath')) {
     return App::getConfigPath();
   }
 }
+if (!function_exists('getAppPath')) {
+  /**
+   * 获取服务或容器
+   *
+   * @return string
+   */
+  function getAppPath(): string
+  {
+    return App::getAppPath();
+  }
+}
 if (!function_exists('app')) {
   /**
    * 获取服务或容器

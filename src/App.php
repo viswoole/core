@@ -150,6 +150,16 @@ class App extends Container
   }
 
   /**
+   * 获取app路径
+   *
+   * @return string
+   */
+  public function getAppPath(): string
+  {
+    return $this->getRootPath() . '/app';
+  }
+
+  /**
    * 获取config路径
    *
    * @return string
