@@ -295,7 +295,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       return $this->invokeFunction($callable, $vars);
     }
 
-    if (str_contains($callable, '::') || is_array($callable)) {
+    if (is_array($callable) || str_contains($callable, '::')) {
       return $this->invokeMethod($callable, $vars);
     }
 
@@ -307,7 +307,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       return $this->invokeFunction($callable, $vars);
     }
     // 如果找不到对应的函数或类，抛出异常
-    throw new FuncNotFoundException("{$callable}函数、类或方法未找到", $callable);
+    throw new FuncNotFoundException("{$callable}函数或类未找到", $callable);
   }
 
   /**
