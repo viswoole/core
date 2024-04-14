@@ -53,22 +53,22 @@ class ValidateRule
     'chsDash' => '{:field}必须是中文、字母、数字、短划线或下划线',
     'url' => '{:field}不是有效的URL',
     'ip' => '{:field}不是有效的IP地址',
-    'dateFormat' => '{:field}必须符合日期格式 {:rule}',
-    'in' => '{:field}必须在 {:rule} 中',
-    'notIn' => '{:field}必须不在 {:rule} 中',
-    'between' => '{:field}必须在 {:rule} - {:rule} 之间',
-    'notBetween' => '{:field}不在 {:rule} - {:rule} 之间',
-    'length' => '{:field}的长度必须为 {:rule}',
-    'max' => '{:field}的长度不能超过 {:rule}',
-    'min' => '{:field}的长度不能小于 {:rule}',
-    'dateAfter' => '{:field}不能早于 {:rule}',
-    'dateBefore' => '{:field}不能晚于 {:rule}',
-    'dateBetween' => '{:field}不在 {:rule} - {:rule} 之间',
-    'egt' => '{:field}必须大于或等于 {:rule}',
-    'gt' => '{:field}必须大于 {:rule}',
-    'elt' => '{:field}必须小于或等于 {:rule}',
-    'lt' => '{:field}必须小于 {:rule}',
-    'eq' => '{:field}必须等于 {:rule}'
+    'dateFormat' => '{:field}必须符合日期格式 {$param}',
+    'in' => '{:field}必须在 {$param} 中',
+    'notIn' => '{:field}必须不在 {$param} 中',
+    'between' => '{:field}必须在 {$param} - {$param} 之间',
+    'notBetween' => '{:field}不在 {$param} - {$param} 之间',
+    'length' => '{:field}的长度必须为 {$param}',
+    'max' => '{:field}的长度不能超过 {$param}',
+    'min' => '{:field}的长度不能小于 {$param}',
+    'dateAfter' => '{:field}不能早于 {$param}',
+    'dateBefore' => '{:field}不能晚于 {$param}',
+    'dateBetween' => '{:field}不在 {$param} - {$param} 之间',
+    'egt' => '{:field}必须大于或等于 {$param}',
+    'gt' => '{:field}必须大于 {$param}',
+    'elt' => '{:field}必须小于或等于 {$param}',
+    'lt' => '{:field}必须小于 {$param}',
+    'eq' => '{:field}必须等于 {$param}'
   ];
   /**
    * @var array 额外的全局规则方法
@@ -78,12 +78,12 @@ class ValidateRule
   /**
    * 获取默认错误提示
    *
-   * @param string $filter 规则
+   * @param string $params 规则
    * @return string
    */
-  public static function getError(string $filter): string
+  public static function getError(string $rule): string
   {
-    return self::$DEFAULT_MSG[$filter] ?? '{:field}不符合规则';
+    return self::$DEFAULT_MSG[$rule] ?? '{:field}不符合规则';
   }
 
   /**
@@ -198,7 +198,7 @@ class ValidateRule
    * @param mixed $value 字段值
    * @return bool
    */
-  public static function array(mixed $value): bool
+  public static function array(mixed $value, $fie): bool
   {
     return is_array($value);
   }
@@ -357,13 +357,13 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 日期格式
+   * @param array $formats 日期格式
    * @return bool
    */
-  public static function dateFormat(mixed $value, array $filter): bool
+  public static function dateFormat(mixed $value, array $formats): bool
   {
     $result = false;
-    foreach ($filter as $format) {
+    foreach ($formats as $format) {
       $date = DateTime::createFromFormat($format, $value);
       $res = $date && $date->format($format) === $value;
       if ($res) {
@@ -405,12 +405,12 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function between(mixed $value, array $filter): bool
+  public static function between(mixed $value, array $params): bool
   {
-    [$min, $max] = $filter;
+    [$min, $max] = $params;
     return $value >= $min && $value <= $max;
   }
 
@@ -419,28 +419,28 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function notBetween(mixed $value, array $filter): bool
+  public static function notBetween(mixed $value, array $params): bool
   {
-    [$min, $max] = $filter;
+    [$min, $max] = $params;
     return $value < $min || $value > $max;
   }
 
   /**
    * 验证字段长度是否等于指定长度
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function length(mixed $value, array $filter): bool
+  public static function length(mixed $value, array $params): bool
   {
     $strLen = mb_strlen((string)$value);
-    if (count($filter) === 1) {
-      return $strLen === (int)$filter[0];
+    if (count($params) === 1) {
+      return $strLen === (int)$params[0];
     } else {
-      [$min, $max] = $filter;
+      [$min, $max] = $params;
       return $strLen <= (int)$max && $strLen >= (int)$min;
     }
   }
@@ -448,12 +448,12 @@ class ValidateRule
   /**
    * 验证字段长度是否不超过指定长度
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function max(mixed $value, array $filter): bool
+  public static function max(mixed $value, array $params): bool
   {
-    $maxLength = (int)$filter[0];
+    $maxLength = (int)$params[0];
     return mb_strlen((string)$value) <= $maxLength;
   }
 
@@ -461,12 +461,12 @@ class ValidateRule
    * 验证字段长度是否不小于指定长度
    *
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function min(mixed $value, array $filter): bool
+  public static function min(mixed $value, array $params): bool
   {
-    $minLength = (int)$filter[0];
+    $minLength = (int)$params[0];
     return mb_strlen((string)$value) >= $minLength;
   }
 
@@ -475,12 +475,12 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function dateAfter(mixed $value, array $filter): bool
+  public static function dateAfter(mixed $value, array $params): bool
   {
-    $date = $filter[0];
+    $date = $params[0];
     return strtotime($value) > strtotime($date);
   }
 
@@ -489,12 +489,12 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function dateBefore(mixed $value, array $filter): bool
+  public static function dateBefore(mixed $value, array $params): bool
   {
-    $date = $filter[0];
+    $date = $params[0];
     return strtotime($value) < strtotime($date);
   }
 
@@ -503,13 +503,13 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function dataBetween(mixed $value, array $filter): bool
+  public static function dataBetween(mixed $value, array $params): bool
   {
-    $startDate = strtotime($filter[0]);
-    $endDate = strtotime($filter[1]);
+    $startDate = strtotime($params[0]);
+    $endDate = strtotime($params[1]);
 
     $fieldDate = strtotime($value);
     return $fieldDate >= $startDate && $fieldDate <= $endDate;
@@ -520,13 +520,13 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function egt(mixed $value, array $filter): bool
+  public static function egt(mixed $value, array $params): bool
   {
-    $filterValue = $filter[0];
-    return $value >= $filterValue;
+    $paramsValue = $params[0];
+    return $value >= $paramsValue;
   }
 
   /**
@@ -534,13 +534,13 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function gt(mixed $value, array $filter): bool
+  public static function gt(mixed $value, array $params): bool
   {
-    $filterValue = $filter[0];
-    return $value > $filterValue;
+    $paramsValue = $params[0];
+    return $value > $paramsValue;
   }
 
   /**
@@ -548,13 +548,13 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function elt(mixed $value, array $filter): bool
+  public static function elt(mixed $value, array $params): bool
   {
-    $filterValue = $filter[0];
-    return $value <= $filterValue;
+    $paramsValue = $params[0];
+    return $value <= $paramsValue;
   }
 
   /**
@@ -562,13 +562,13 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function lt(mixed $value, array $filter): bool
+  public static function lt(mixed $value, array $params): bool
   {
-    $filterValue = $filter[0];
-    return $value < $filterValue;
+    $paramsValue = $params[0];
+    return $value < $paramsValue;
   }
 
   /**
@@ -576,20 +576,21 @@ class ValidateRule
    *
    * @access public
    * @param mixed $value 字段值
-   * @param array $filter 验证规则
+   * @param array $params 验证规则
    * @return bool
    */
-  public static function eq(mixed $value, array $filter): bool
+  public static function eq(mixed $value, array $params): bool
   {
-    $filterValue = $filter[0];
-    return $value === $filterValue;
+    $paramsValue = $params[0];
+    return $value === $paramsValue;
   }
 
   /**
    * 添加自定义的验证方法
    *
+   * @access public
    * @param string $ruleName 规则名称
-   * @param Closure $handle 处理函数，函数需返回bool值
+   * @param Closure $handle 函数接收两个参数为$value和$params，返回值为bool
    * @param string $message 错误提示信息
    * @return void
    */
@@ -607,12 +608,12 @@ class ValidateRule
    * 调用用户添加的全局验证方法
    *
    * @param string $name
-   * @param array $arguments
+   * @param array $params
    * @return mixed
    */
-  public static function __callStatic(string $name, array $arguments)
+  public static function __callStatic(string $name, array $params)
   {
-    if (isset(self::$rules[$name])) return self::$rules[$name](...$arguments);
+    if (isset(self::$rules[$name])) return self::$rules[$name](...$params);
     throw new BadMethodCallException('ValidateRule ' . $name . ' does not exist.');
   }
 }
