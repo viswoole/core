@@ -17,7 +17,7 @@ namespace ViSwoole\Core\Validate;
 
 use Closure;
 
-trait ParseRule
+trait ValidateRuleTrait
 {
   /**
    * @var array 验证规则

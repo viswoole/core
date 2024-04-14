@@ -15,7 +15,7 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Validate;
 
-trait ValidateExceptionMessage
+trait ValidateMessageTrait
 {
 
   /**
