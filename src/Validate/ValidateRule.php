@@ -31,7 +31,7 @@ class ValidateRule
    * @var array
    */
   protected static array $DEFAULT_MSG = [
-    'require' => '{:field}不能为空',
+    'required' => '{:field}不能为空',
     'number' => '{:field}必须是数字',
     'string' => '{:field}必须是字符串',
     'int' => '{:field}必须是整数',
@@ -41,6 +41,7 @@ class ValidateRule
     'intBool' => '{:field}必须是布尔值或0，1',
     'email' => '{:field}不是有效的电子邮件地址',
     'mobile' => '{:field}不是有效的手机号码',
+    'indexArray' => '{:field}必须是索引数组且元素类型必须是{:$param}之一',
     'array' => '{:field}必须是数组',
     'date' => '{:field}不是有效的日期时间',
     'alpha' => '{:field}必须是字母',
@@ -52,23 +53,24 @@ class ValidateRule
     'chsAlphaNum' => '{:field}必须是中文、字母或数字',
     'chsDash' => '{:field}必须是中文、字母、数字、短划线或下划线',
     'url' => '{:field}不是有效的URL',
+    'idCard' => '{:field}不是有效的身份证号',
     'ip' => '{:field}不是有效的IP地址',
-    'dateFormat' => '{:field}必须符合日期格式 {$param}',
-    'in' => '{:field}必须在 {$param} 中',
-    'notIn' => '{:field}必须不在 {$param} 中',
-    'between' => '{:field}必须在 {$param} - {$param} 之间',
-    'notBetween' => '{:field}不在 {$param} - {$param} 之间',
-    'length' => '{:field}的长度必须为 {$param}',
-    'max' => '{:field}的长度不能超过 {$param}',
-    'min' => '{:field}的长度不能小于 {$param}',
-    'dateAfter' => '{:field}不能早于 {$param}',
-    'dateBefore' => '{:field}不能晚于 {$param}',
-    'dateBetween' => '{:field}不在 {$param} - {$param} 之间',
-    'egt' => '{:field}必须大于或等于 {$param}',
-    'gt' => '{:field}必须大于 {$param}',
-    'elt' => '{:field}必须小于或等于 {$param}',
-    'lt' => '{:field}必须小于 {$param}',
-    'eq' => '{:field}必须等于 {$param}'
+    'dateFormat' => '{:field}必须符合日期格式 {:$param}',
+    'in' => '{:field}必须在 {:$param} 中',
+    'notIn' => '{:field}必须不在 {:$param} 中',
+    'between' => '{:field}必须在 {:$param} - {:$param} 之间',
+    'notBetween' => '{:field}不在 {:$param} - {:$param} 之间',
+    'length' => '{:field}的长度必须为 {:$param}',
+    'max' => '{:field}的长度不能超过 {:$param}',
+    'min' => '{:field}的长度不能小于 {:$param}',
+    'dateAfter' => '{:field}不能早于 {:$param}',
+    'dateBefore' => '{:field}不能晚于 {:$param}',
+    'dateBetween' => '{:field}不在 {:$param} - {:$param} 之间',
+    'egt' => '{:field}必须大于或等于 {:$param}',
+    'gt' => '{:field}必须大于 {:$param}',
+    'elt' => '{:field}必须小于或等于 {:$param}',
+    'lt' => '{:field}必须小于 {:$param}',
+    'eq' => '{:field}必须等于 {:$param}'
   ];
   /**
    * @var array 额外的全局规则方法
@@ -78,7 +80,7 @@ class ValidateRule
   /**
    * 获取默认错误提示
    *
-   * @param string $params 规则
+   * @param string $rule
    * @return string
    */
   public static function getError(string $rule): string
@@ -87,13 +89,29 @@ class ValidateRule
   }
 
   /**
+   * 验证身份证号
+   *
+   * @access public
+   * @param mixed $value 字段值
+   * @return bool
+   */
+  public static function idCard(mixed $value): bool
+  {
+    if (!is_string($value)) return false;
+    return preg_match(
+        '/(^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)|(^[1-9]\d{5}\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}$)/',
+        $value
+      ) === 1;
+  }
+
+  /**
    * 验证字段是否存在且不为空
    * @param mixed $value 字段值
    * @return bool
    */
-  public static function require(mixed $value): bool
+  public static function required(mixed $value): bool
   {
-    return isset($value) && $value !== '';
+    return !empty($value);
   }
 
   /**
@@ -105,11 +123,11 @@ class ValidateRule
    */
   public static function price(mixed $value): bool
   {
+    if (!is_numeric($value)) return false;
     $numberRegex = '/^(?!0\d)(?!-)\d+(\.\d{0,2})?$/';
     $res = preg_match($numberRegex, (string)$value);
     if (false === $res) return false;
-    if (is_int($res)) return $res > 0;
-    return false;
+    return $res > 0;
   }
 
   /**
@@ -122,6 +140,20 @@ class ValidateRule
   public static function number(mixed $value): bool
   {
     return ctype_digit((string)$value);
+  }
+
+  /**
+   * 正则验证
+   *
+   * @param mixed $value
+   * @param array $regex
+   * @return bool
+   */
+  public static function regex(mixed $value, array $regex): bool
+  {
+    if (!is_string($value) && !is_numeric($value)) return false;
+    $result = preg_match($regex[0], (string)$value);
+    return $result !== false && $result > 0;
   }
 
   /**
@@ -188,19 +220,49 @@ class ValidateRule
    */
   public static function mobile(mixed $value): bool
   {
-    // 你可以根据具体的手机号码验证规则进行实现
-    // 这里只是一个示例
+    if (!is_numeric($value)) return false;
     return preg_match('/^1[3-9]\d{9}$/', $value) === 1;
   }
 
   /**
-   * 验证字段是否为数组
-   * @param mixed $value 字段值
+   * 验证字段是否为索引数组
+   *
+   * @access public
+   * @param mixed $array 字段值
+   * @param array $validateRules 数组元素需匹配的类型,只支持内置验证规则
    * @return bool
    */
-  public static function array(mixed $value, $fie): bool
+  public static function indexArray(mixed $array, array $validateRules): bool
   {
-    return is_array($value);
+    // 如果不是索引数组返回false
+    if (!array_values($array) === $array) return false;
+    if (!empty($validateRules)) {
+      // 遍历数组元素判断是否符合规则
+      foreach ($array as $item) {
+        $valid = false;
+        foreach ($validateRules as $rule) {
+          if (method_exists(self::class, $rule) && self::$rule($item)) {
+            $valid = true;
+            break;
+          }
+        }
+        if (!$valid) return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * 验证字段是否在指定范围内
+   *
+   * @access public
+   * @param mixed $value 字段值
+   * @param array $haystack 验证规则
+   * @return bool
+   */
+  public static function in(mixed $value, array $haystack): bool
+  {
+    return in_array($value, $haystack);
   }
 
   /**
@@ -240,6 +302,7 @@ class ValidateRule
    */
   public static function alpha(mixed $value): bool
   {
+    if (!is_string($value)) return false;
     return preg_match('/^[A-Za-z]+$/', $value) === 1;
   }
 
@@ -252,6 +315,7 @@ class ValidateRule
    */
   public static function alphaNum(mixed $value): bool
   {
+    if (!is_string($value)) return false;
     return preg_match('/^[A-Za-z0-9]+$/', $value) === 1;
   }
 
@@ -264,6 +328,7 @@ class ValidateRule
    */
   public static function alphaDash(mixed $value): bool
   {
+    if (!is_string($value)) return false;
     return preg_match('/^[A-Za-z0-9\-_]+$/', $value) === 1;
   }
 
@@ -289,6 +354,7 @@ class ValidateRule
    */
   public static function chs(mixed $value): bool
   {
+    if (!is_string($value)) return false;
     return preg_match('/^[\x{4e00}-\x{9fa5}]+$/u', $value) === 1;
   }
 
@@ -301,6 +367,7 @@ class ValidateRule
    */
   public static function chsAlpha(mixed $value): bool
   {
+    if (!is_string($value)) return false;
     return preg_match('/^[\x{4e00}-\x{9fa5}a-zA-Z]+$/u', $value) === 1;
   }
 
@@ -313,6 +380,7 @@ class ValidateRule
    */
   public static function chsAlphaNum(mixed $value): bool
   {
+    if (!is_string($value)) return false;
     return preg_match('/^[\x{4e00}-\x{9fa5}a-zA-Z0-9]+$/u', $value) === 1;
   }
 
@@ -325,6 +393,7 @@ class ValidateRule
    */
   public static function chsDash(mixed $value): bool
   {
+    if (!is_string($value)) return false;
     return preg_match('/^[\x{4e00}-\x{9fa5}a-zA-Z0-9\-_]+$/u', $value) === 1;
   }
 
@@ -372,19 +441,6 @@ class ValidateRule
       }
     }
     return $result;
-  }
-
-  /**
-   * 验证字段是否在指定范围内
-   *
-   * @access public
-   * @param mixed $value 字段值
-   * @param array $haystack 验证规则
-   * @return bool
-   */
-  public static function in(mixed $value, array $haystack): bool
-  {
-    return in_array($value, $haystack);
   }
 
   /**
@@ -615,5 +671,16 @@ class ValidateRule
   {
     if (isset(self::$rules[$name])) return self::$rules[$name](...$params);
     throw new BadMethodCallException('ValidateRule ' . $name . ' does not exist.');
+  }
+
+  /**
+   * 判断是否为数组（包括索引数组，和关联数组）
+   *
+   * @param mixed $value
+   * @return bool
+   */
+  public function array(mixed $value): bool
+  {
+    return is_array($value);
   }
 }

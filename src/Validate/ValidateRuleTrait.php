@@ -22,7 +22,7 @@ trait ValidateRuleTrait
   /**
    * @var array 验证规则
    */
-  protected array $rules;
+  protected array $rules = [];
 
   /**
    * 解析规则
@@ -34,8 +34,8 @@ trait ValidateRuleTrait
    *      string,array,
    *    }|Closure,
    *  },
-   *  _desc:string,
-   * } [ 字段名=>[ 闭包函数 或 [ 规则名称=>[...规则参数] ], _desc=>字段别名或描述]]
+   *  alias:string,
+   * } [ 字段名=>[ 闭包函数 或 [ 规则名称=>[...规则参数] ], alias=>字段别名或描述]]
    */
   private function parseRules(array $rules): array
   {

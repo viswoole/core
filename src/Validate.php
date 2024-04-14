@@ -19,6 +19,7 @@ use Closure;
 use InvalidArgumentException;
 use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
+use ViSwoole\Core\Validate\ArrayShape;
 use ViSwoole\Core\Validate\ValidateMessageTrait;
 use ViSwoole\Core\Validate\ValidateRule;
 use ViSwoole\Core\Validate\ValidateRuleTrait;
@@ -72,69 +73,61 @@ class Validate
    * @access public
    * @param array $data 数据
    * @param bool $batch 是否批量验证
-   * @return bool
+   * @return true 验证通过
+   * @throws ValidateException 验证失败会抛出错误
    */
   public function check(array $data, bool $batch = false): bool
   {
-    if (!isset($this->rules)) throw new ValidateException('验证规则不能为空');
-
-    if (isset($this->currentScene)) {
-      if ($this->currentScene !== $this->lastScene) {
-        // 重置场景验证器
-        $this->reset();
-        $this->lastScene = $this->currentScene;
-        $this->{$this->currentScene}();
-        unset($this->currentScene);
-      }
-    }
+    if (empty($this->rules)) throw new ValidateException('验证规则不能为空');
+    $this->resetScene();
     $results = [];
     foreach ($this->rules as $field => $structure) {
       // 如果设置了只验证的字段则判断，则判断当前字段是否需要验证。
       if (isset($this->onlyFields) && !in_array($field, $this->onlyFields)) continue;
       // 字段别名或描述
       $alias = $structure['alias'];
-      // 拿到待验证的规则
+      // 拿到待验证的规则 [rule=>params] | 闭包函数
       $rules = is_array($structure['rules'])
         ? $this->rulesToBeVerified($field, $structure['rules'])
         : $structure['rules'];
+      /** @var $value mixed 字段值，不存在则为null */
+      $value = $data[$field] ?? null;
       // 开始验证
       if ($rules instanceof Closure) {
         // 如果是闭包则直接验证
-        try {
-          $result = $rules($data[$field]);
-          if ($result !== true) {
-            $message = is_string($result) ? $result : "$alias 验证失败";
-            $result = false;
+        $results[$field] = $this->closureCheck($rules, $value, $field, $alias, $batch);
+      } else {
+        // 如果参数非必填且为空则跳过验证
+        if (empty($value) && !array_key_exists('required', $rules)) continue;
+        // 遍历需要校验的规则
+        foreach ($rules as $rule => $params) {
+          /** @var $message string 错误提示信息 */
+          $message = null;
+          try {
+            // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
+            if (class_exists($rule) && is_subclass_of($rule, ArrayShape::class)) {
+              new $rule(is_array($value) ? $value : []);
+              $valid = true;
+            } else {
+              $valid = ValidateRule::$rule($value, $params);
+            }
+          } catch (ValidateException $e) {
+            $message = $e->getMessage();
+            $valid = false;
           }
-        } catch (ValidateException $e) {
-          $result = false;
-          $message = $e->getMessage();
-        }
-        // 如果非批量验证则抛出异常
-        if (!$result) {
+          if ($valid) break;
+          $message = $message ?: $this->getErrorMessage(
+            $field,
+            $alias,
+            $rule,
+            $params,
+            ValidateRule::getError($rule)
+          );
           if (!$batch) {
             throw new ValidateException($message);
           } else {
             $results[$field] = $message;
-          }
-        }
-      } else {
-        $value = $data[$field] ?? null;
-        foreach ($rules as $validate => $filter) {
-          if (!ValidateRule::$validate($value, $filter)) {
-            $message = $this->getErrorMessage(
-              $field,
-              $alias,
-              $validate,
-              $filter,
-              ValidateRule::getError($validate)
-            );
-            if (!$batch) {
-              throw new ValidateException($message);
-            } else {
-              $results[$field] = $message;
-              break;
-            }
+            break;
           }
         }
       }
@@ -147,11 +140,19 @@ class Validate
    * 重置验证器为初始状态
    * @return void
    */
-  private function reset(): void
+  private function resetScene(): void
   {
-    $this->remove = [];
-    $this->append = [];
-    unset($this->onlyFields);
+    if (isset($this->currentScene)) {
+      if ($this->currentScene !== $this->lastScene) {
+        // 重置场景验证器
+        $this->remove = [];
+        $this->append = [];
+        unset($this->onlyFields);
+        $this->lastScene = $this->currentScene;
+        $this->{$this->currentScene}();
+        unset($this->currentScene);
+      }
+    }
   }
 
   /**
@@ -172,6 +173,46 @@ class Validate
       $rules = array_merge_recursive($rules, $this->append[$field]);
     }
     return $rules;
+  }
+
+  /**
+   * 闭包验证
+   *
+   * @param Closure $Closure
+   * @param array $data
+   * @param string $field
+   * @param string $alias
+   * @param bool $batch
+   * @return true|string
+   * @throws ValidateException
+   */
+  private function closureCheck(
+    Closure $Closure,
+    array   $value,
+    string  $field,
+    string  $alias,
+    bool    $batch
+  ): true|string
+  {
+    try {
+      $result = $Closure($value, $field, $alias);
+      if ($result !== true) {
+        $message = is_string($result) ? $result : "$alias 验证失败";
+        $result = false;
+      }
+    } catch (ValidateException $e) {
+      $result = false;
+      $message = $e->getMessage();
+    }
+    // 如果非批量验证则抛出异常
+    if (!$result) {
+      if (!$batch) {
+        throw new ValidateException($message);
+      } else {
+        return $message;
+      }
+    }
+    return true;
   }
 
   /**
