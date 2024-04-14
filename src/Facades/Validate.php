@@ -45,4 +45,14 @@ class Validate extends Facade
   {
     return \ViSwoole\Core\Validate::class;
   }
+
+  /**
+   * 重写createFacade方法，直接返回实例，不执行容器反射，提高效率
+   *
+   * @return \ViSwoole\Core\Validate
+   */
+  #[Override] protected static function createFacade(): object
+  {
+    return new \ViSwoole\Core\Validate();
+  }
 }
