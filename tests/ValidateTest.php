@@ -17,6 +17,7 @@ namespace ViSwoole\Core\Tests;
 
 use PHPUnit\Framework\TestCase;
 use ViSwoole\Core\Exception\ValidateException;
+use ViSwoole\Core\UserInfo;
 use ViSwoole\Core\Validate;
 
 class ValidateTest extends TestCase
@@ -33,7 +34,7 @@ class ValidateTest extends TestCase
       $validate
         ->rules([
           'name' => function ($value) {
-            $res = Validate\ValidateRule::require($value);
+            $res = Validate\ValidateRule::required($value);
             return $res ? true : throw new ValidateException('名字验证错误');
           },
           'email|邮箱' => 'email',
@@ -59,13 +60,38 @@ class ValidateTest extends TestCase
     try {
       $validate
         ->rules([
-          'name|名字,email|邮箱' => ['require', 'max:40', 'length' => [1, 25]],
+          'name|名字,email|邮箱' => ['required', 'max:40', 'length' => [1, 25]],
         ])->message(['name' => '名字验证错误'])
         ->check([
           'name' => null,
-        ], false);
+        ], true);
     } catch (ValidateException $e) {
       var_dump($e->getError());
+      static::assertTrue(true);
+    }
+  }
+
+  public function testValidateFacade()
+  {
+    \ViSwoole\Core\Facades\Validate::rules([
+      'name|名字' => ['required', 'max:40', 'length' => [1, 25]],
+    ])->check(['name' => 'viswoole']);
+    static::assertTrue(true);
+  }
+
+  /**
+   * 测试使用ArrayShape
+   *
+   * @return void
+   */
+  public function testValidateArrayShape()
+  {
+    try {
+      \ViSwoole\Core\Facades\Validate::rules([
+        'userInfo' => ['required', UserInfo::class],
+      ])->check(['userInfo' => ['name' => 'viswoole', 'info' => 'd']]);
+    } catch (ValidateException $e) {
+      var_dump($e->getMessage());
       static::assertTrue(true);
     }
   }

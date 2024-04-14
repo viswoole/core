@@ -29,7 +29,7 @@ use ViSwoole\Core\Validate\ValidateRuleTrait;
  *
  * 可继承此类实现自定义的验证器
  */
-class Validate
+class Validate implements ValidateInterface
 {
   use ValidateRuleTrait;
   use ValidateMessageTrait;
@@ -56,27 +56,9 @@ class Validate
   private array $onlyFields;
 
   /**
-   * 数据验证
-   *
-   * Example usage:
-   *  ```
-   *  try{
-   *    // 门面类快捷验证
-   *    \ViSwoole\Core\Facades\Validate::rule('name', 'require|max:25')->check(['name' => 'viswoole']);
-   *    // 验证器验证
-   *    $validate = new \ViSwoole\Core\Validate();
-   *    $validate->check(['name' => 'viswoole']);//check方法第二个参数传入true则批量验证
-   *  }catch(ValidateException $e){
-   *    echo $e->getMessage(); // 如果验证失败则会抛出验证异常，通过$e->getMessage可以捕获异常提示信息
-   *  }
-   *  ```
-   * @access public
-   * @param array $data 数据
-   * @param bool $batch 是否批量验证
-   * @return true 验证通过
-   * @throws ValidateException 验证失败会抛出错误
+   * @inheritDoc
    */
-  public function check(array $data, bool $batch = false): bool
+  public function check(array $data, bool $batch = false): true
   {
     if (empty($this->rules)) throw new ValidateException('验证规则不能为空');
     $this->resetScene();
@@ -95,7 +77,7 @@ class Validate
       // 开始验证
       if ($rules instanceof Closure) {
         // 如果是闭包则直接验证
-        $results[$field] = $this->closureCheck($rules, $value, $field, $alias, $batch);
+        $results[$field] = $this->closureCheck($rules, $value, $alias, $batch);
       } else {
         // 如果参数非必填且为空则跳过验证
         if (empty($value) && !array_key_exists('required', $rules)) continue;
@@ -106,7 +88,7 @@ class Validate
           try {
             // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
             if (class_exists($rule) && is_subclass_of($rule, ArrayShape::class)) {
-              new $rule(is_array($value) ? $value : []);
+              new $rule(is_array($value) ? $value : [], "$alias.");
               $valid = true;
             } else {
               $valid = ValidateRule::$rule($value, $params);
@@ -115,7 +97,7 @@ class Validate
             $message = $e->getMessage();
             $valid = false;
           }
-          if ($valid) break;
+          if ($valid) continue;
           $message = $message ?: $this->getErrorMessage(
             $field,
             $alias,
@@ -179,25 +161,22 @@ class Validate
    * 闭包验证
    *
    * @param Closure $Closure
-   * @param array $data
-   * @param string $field
+   * @param mixed $value
    * @param string $alias
    * @param bool $batch
    * @return true|string
-   * @throws ValidateException
    */
   private function closureCheck(
     Closure $Closure,
-    array   $value,
-    string  $field,
+    mixed   $value,
     string  $alias,
     bool    $batch
   ): true|string
   {
     try {
-      $result = $Closure($value, $field, $alias);
+      $result = $Closure($value, $alias);
       if ($result !== true) {
-        $message = is_string($result) ? $result : "$alias 验证失败";
+        $message = is_string($result) ? $result : "{$alias}验证失败";
         $result = false;
       }
     } catch (ValidateException $e) {

@@ -15,7 +15,6 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Contract;
 
-use Closure;
 use ViSwoole\Core\Exception\ValidateException;
 
 /**
@@ -40,7 +39,7 @@ interface ValidateInterface
    * @return bool
    * @throws ValidateException 验证失败会抛出异常
    */
-  public function check(array $data, bool $batch): bool;
+  public function check(array $data, bool $batch): true;
 
   /**
    * 设置验证规则
@@ -58,48 +57,4 @@ interface ValidateInterface
    * @return ValidateInterface
    */
   public function message(array $message): ValidateInterface;
-
-  /**
-   * 设置验证场景
-   *
-   * @access public
-   * @param string $name 验证场景
-   * @return ValidateInterface
-   */
-  public function scene(string $name): ValidateInterface;
-
-  /**
-   * 判断是否存在某个验证场景
-   *
-   * @access public
-   * @param string $name 场景名
-   * @return false|string
-   */
-  public function hasScene(string $name): false|string;
-
-  /**
-   * 指定需要验证的字段列表
-   *
-   * @param array|string $fields 字段名
-   * @return ValidateInterface
-   */
-  public function only(array|string $fields): ValidateInterface;
-
-  /**
-   * 移除某个字段的验证规则
-   *
-   * @param array|string $field 字段名
-   * @param string|array|null $rule 验证规则
-   * @return ValidateInterface
-   */
-  public function remove(array|string $field, string|array $rule = null): ValidateInterface;
-
-  /**
-   * 追加某个字段的验证规则
-   *
-   * @param array|string $field 字段名
-   * @param array|string|Closure|null $rule 验证规则
-   * @return ValidateInterface
-   */
-  public function append(array|string $field, array|string|Closure $rule = null): ValidateInterface;
 }
