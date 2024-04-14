@@ -17,22 +17,22 @@ namespace ViSwoole\Core;
 
 use Closure;
 use InvalidArgumentException;
-use Override;
 use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
+use ViSwoole\Core\Validate\ParseRule;
+use ViSwoole\Core\Validate\ValidateExceptionMessage;
 use ViSwoole\Core\Validate\ValidateRule;
 
-class Validate implements ValidateInterface
+/**
+ * 数据验证器
+ *
+ * 可继承此类实现自定义的验证器
+ */
+class Validate
 {
-  /**
-   * 用户自定义提示
-   * @var array
-   */
-  protected array $message;
-  /**
-   * @var array 验证规则
-   */
-  protected array $rules;
+  use ParseRule;
+  use ValidateExceptionMessage;
+
   /**
    * @var array 场景需要移除的验证规则
    */
@@ -46,6 +46,10 @@ class Validate implements ValidateInterface
    */
   private string $currentScene;
   /**
+   * @var string 最后一次验证场景
+   */
+  private string $lastScene;
+  /**
    * @var array 场景需要验证的字段
    */
   private array $onlyFields;
@@ -56,7 +60,11 @@ class Validate implements ValidateInterface
    * Example usage:
    *  ```
    *  try{
-   *    Validate::rule('name', 'require|max:25')->check(['name' => 'viswoole']);
+   *    // 门面类快捷验证
+   *    \ViSwoole\Core\Facades\Validate::rule('name', 'require|max:25')->check(['name' => 'viswoole']);
+   *    // 验证器验证
+   *    $validate = new \ViSwoole\Core\Validate();
+   *    $validate->check(['name' => 'viswoole']);//check方法第二个参数传入true则批量验证
    *  }catch(ValidateException $e){
    *    echo $e->getMessage(); // 如果验证失败则会抛出验证异常，通过$e->getMessage可以捕获异常提示信息
    *  }
@@ -65,12 +73,20 @@ class Validate implements ValidateInterface
    * @param array $data 数据
    * @param bool $batch 是否批量验证
    * @return bool
-   * @throws ValidateException 验证失败会抛出异常
    */
-  #[Override] public function check(array $data, bool $batch = false): bool
+  public function check(array $data, bool $batch = false): bool
   {
     if (!isset($this->rules)) throw new ValidateException('验证规则不能为空');
-    if (isset($this->currentScene)) $this->{$this->currentScene}();
+
+    if (isset($this->currentScene)) {
+      if ($this->currentScene !== $this->lastScene) {
+        // 重置场景验证器
+        $this->reset();
+        $this->lastScene = $this->currentScene;
+        $this->{$this->currentScene}();
+        unset($this->currentScene);
+      }
+    }
     $results = [];
     foreach ($this->rules as $field => $structure) {
       // 如果设置了只验证的字段则判断，则判断当前字段是否需要验证。
@@ -128,6 +144,17 @@ class Validate implements ValidateInterface
   }
 
   /**
+   * 重置验证器为初始状态
+   * @return void
+   */
+  private function reset(): void
+  {
+    $this->remove = [];
+    $this->append = [];
+    unset($this->onlyFields);
+  }
+
+  /**
    * 生成最终待验证的规则
    *
    * @param string $field 字段
@@ -148,123 +175,16 @@ class Validate implements ValidateInterface
   }
 
   /**
-   * 获取错误提示信息
-   *
-   * @param string $field 字段名
-   * @param string $alias 默认提示信息
-   * @param string $rule 验证规则
-   * @param array $filter 验证规则过滤参数
-   * @param string $defaultMsg 默认提示消息
-   * @return string
-   */
-  private function getErrorMessage(
-    string $field,
-    string $alias,
-    string $rule,
-    array  $filter,
-    string $defaultMsg
-  ): string
-  {
-    $msg = $this->message[$field . '.' . $rule] ?? $this->message[$field] ?? $defaultMsg;
-    $msg = str_replace('{:field}', $alias, $msg);
-    $ruleCount = substr_count($msg, '{:rule}');
-    if ($ruleCount === 1) {
-      $msg = str_replace('{:rule}', implode(', ', $filter), $msg);
-    } elseif ($ruleCount > 1) {
-      foreach ($filter as $param) {
-        $msg = preg_replace('/\{:rule}/', $param, $msg, 1);
-      }
-    }
-    return $msg;
-  }
-
-  /**
    * 设置验证规则
    *
    * @access public
-   * @param array $rules 验证规则格式：['field1|字段描述,field2'=>'rule1|rule2...'|['rule1'=>[]...]|Closure]
+   * @param array $rules 验证规则格式：['field1|字段描述,field2'=>'rule1|rule2...' | ['rule1'=>[]...] |Closure ]
    * @return ValidateInterface
    */
-  #[Override] public function rules(array $rules): ValidateInterface
+  public function rules(array $rules): ValidateInterface
   {
     $this->rules = $this->parseRules($rules);
     return $this;
-  }
-
-  /**
-   * 解析规则
-   *
-   * @param array $rules
-   * @return array [字段名=>[rules=>Closure|['ruleName'=>[...$params]], alias=>字段别名或描述]]
-   */
-  private function parseRules(array $rules): array
-  {
-    $parsedRules = [];
-    foreach ($rules as $field => $rule) {
-      $fields = $this->parseField($field);
-      // 如果没有设置只验证的字段 或 只验证字段中存在当前字段 则解析验证规则
-      $rule = $this->parseRule($rule);
-      foreach ($fields as $field) {
-        $parsedRules[$field[0]] = ['rules' => $rule, 'alias' => $field[1]];
-      }
-    }
-    return $parsedRules;
-  }
-
-  /**
-   * 解析字段
-   *
-   * @param string $field 字段
-   * @return string[] [字段名，字段别名或描述]
-   */
-  private function parseField(string $field): array
-  {
-    $field = str_replace(' ', '', $field);
-    $fields = [];
-    foreach (explode(',', $field) as $item) {
-      if (str_contains($item, '|')) {
-        [$name, $alias] = explode('|', $item, 2);
-      } else {
-        $alias = $item;
-        $name = $item;
-      }
-      $fields[] = [$name, $alias];
-    }
-    return $fields;
-  }
-
-  /**
-   * 解析验证规则
-   *
-   * @param array|string|Closure $rules
-   * @return array|Closure 数组示例[rule=>[...params]]
-   */
-  private function parseRule(array|string|Closure $rules): array|Closure
-  {
-    if (is_string($rules)) {
-      $rules = explode('|', str_replace(' ', '', $rules));
-    }
-    if (is_array($rules)) {
-      $parsedRule = [];
-      foreach ($rules as $key => $rule) {
-        if (is_array($rule)) {
-          // 参数数组
-          $parsedRule[$key] = $rule;
-        } elseif (is_int($key)) {
-          if (str_contains($rule, ':')) {
-            [$rule, $params] = explode(':', $rule, 2);
-            $parsedRule[$rule] = explode(',', $params);
-          } else {
-            $parsedRule[$rule] = [];
-          }
-        } else {
-          $parsedRule[$key] = [];
-        }
-      }
-      return $parsedRule;
-    } else {
-      return $rules;
-    }
   }
 
   /**
@@ -273,7 +193,7 @@ class Validate implements ValidateInterface
    * @param array $message
    * @return ValidateInterface
    */
-  #[Override] public function message(array $message): ValidateInterface
+  public function message(array $message): ValidateInterface
   {
     $this->message = $message;
     return $this;
@@ -286,7 +206,7 @@ class Validate implements ValidateInterface
    * @param string $name 验证场景
    * @return ValidateInterface
    */
-  #[Override] public function scene(string $name): ValidateInterface
+  public function scene(string $name): ValidateInterface
   {
     $scene = $this->hasScene($name);
     if (!$scene) throw new InvalidArgumentException('验证场景' . $name . ' 不存在');
@@ -301,7 +221,7 @@ class Validate implements ValidateInterface
    * @param string $name 场景名
    * @return false|string
    */
-  #[Override] public function hasScene(string $name): false|string
+  private function hasScene(string $name): false|string
   {
     $name = 'scene' . ucfirst($name);
     return method_exists($this, $name) ? $name : false;
@@ -313,7 +233,7 @@ class Validate implements ValidateInterface
    * @param array|string $fields 字段名
    * @return ValidateInterface
    */
-  #[Override] public function only(array|string $fields): ValidateInterface
+  protected function only(array|string $fields): ValidateInterface
   {
     if (is_string($fields)) $fields = explode('|', $fields);
     $this->onlyFields = $fields;
@@ -327,7 +247,7 @@ class Validate implements ValidateInterface
    * @param array|string|null $rule 验证规则 [rule1,rule2...]|'rule1,rule2...'
    * @return ValidateInterface
    */
-  #[Override] public function remove(string|array $field, array|string $rule = null
+  protected function remove(string|array $field, array|string $rule = null
   ): ValidateInterface
   {
     if (is_array($field)) {
@@ -350,7 +270,7 @@ class Validate implements ValidateInterface
    * @param string|array|Closure|null $rule 要追加的验证规则
    * @return ValidateInterface
    */
-  #[Override] public function append(array|string $field, array|string|Closure $rule = null
+  protected function append(array|string $field, array|string|Closure $rule = null
   ): ValidateInterface
   {
     if (is_array($field)) {
