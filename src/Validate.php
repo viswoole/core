@@ -58,7 +58,7 @@ class Validate implements ValidateInterface
   /**
    * @inheritDoc
    */
-  public function check(array $data, bool $batch = false): true
+  public function check(array $data, bool $batch = false): array
   {
     if (empty($this->rules)) throw new ValidateException('验证规则不能为空');
     $this->resetScene();
@@ -114,7 +114,10 @@ class Validate implements ValidateInterface
         }
       }
     }
-    if (empty($results)) return true;
+    if (empty($results)) return array_intersect_key(
+      $data,
+      array_flip($this->onlyFields ?: array_keys($this->rules))
+    );
     throw new ValidateException($results);
   }
 

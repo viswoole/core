@@ -36,10 +36,10 @@ interface ValidateInterface
    * @access public
    * @param array $data 数据
    * @param bool $batch 是否批量验证
-   * @return bool
+   * @return array 验证成功抛出验证完成的数据
    * @throws ValidateException 验证失败会抛出异常
    */
-  public function check(array $data, bool $batch): true;
+  public function check(array $data, bool $batch): array;
 
   /**
    * 设置验证规则
