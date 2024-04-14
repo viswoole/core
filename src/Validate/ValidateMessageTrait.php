@@ -44,12 +44,12 @@ trait ValidateMessageTrait
   {
     $msg = $this->message[$field . '.' . $rule] ?? $this->message[$field] ?? $defaultMsg;
     $msg = str_replace('{:field}', $alias, $msg);
-    $ruleCount = substr_count($msg, '{:rule}');
+    $ruleCount = substr_count($msg, '{:param}');
     if ($ruleCount === 1) {
-      $msg = str_replace('{:rule}', implode(', ', $filter), $msg);
+      $msg = str_replace('{:param}', implode(', ', $filter), $msg);
     } elseif ($ruleCount > 1) {
       foreach ($filter as $param) {
-        $msg = preg_replace('/\{:rule}/', $param, $msg, 1);
+        $msg = preg_replace('/\{:param}/', $param, $msg, 1);
       }
     }
     return $msg;
