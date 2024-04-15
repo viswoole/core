@@ -152,6 +152,7 @@ class App extends Container
   /**
    * 获取app路径
    *
+   * @access public
    * @return string
    */
   public function getAppPath(): string
@@ -162,6 +163,7 @@ class App extends Container
   /**
    * 获取config路径
    *
+   * @access public
    * @return string
    */
   public function getConfigPath(): string
