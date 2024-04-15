@@ -19,11 +19,17 @@ use Closure;
 use ViSwoole\Core\Common\ArrayObject;
 use ViSwoole\Core\Exception\ValidateException;
 
-abstract class ArrayShape extends ArrayObject
+/**
+ * ArrayShape用于支持数组数据结构校验
+ */
+abstract class ArrayShapeValidator extends ArrayObject
 {
-  use ValidateRuleTrait;
   use ValidateMessageTrait;
 
+  /**
+   * @var array 缓存解析好的规则结构,减少解析规则时间
+   */
+  private static array $cacheShape = [];
   /**
    * Example usage:
    * ```
@@ -33,34 +39,47 @@ abstract class ArrayShape extends ArrayObject
    *
    * @var array
    */
-  protected array $rules = [];
-  /**
-   * @var array 解析过后的规则
-   */
-  private array $parseRules;
+  protected array $shape = [];
 
   /**
-   * @param array $data 数据
-   * @param string $parent 父级字段
+   * @param string $parent 父级字段,用于错误提示
    */
-  public function __construct(array $data, private readonly string $parent = '')
+  public function __construct(private readonly string $parent = '')
   {
-    $this->parseRules = $this->parseRules($this->rules);
-    parent::__construct($this->validate($data));
+    if (!empty($this->shape)) {
+      $cacheKey = md5(get_called_class());
+      if (!isset(self::$cacheShape[$cacheKey])) {
+        $this->shape = ValidateRule::parseRules($this->shape);
+        self::$cacheShape[$cacheKey] = $this->shape;
+      } else {
+        $this->shape = self::$cacheShape[$cacheKey];
+      }
+    }
+    parent::__construct();
   }
 
   /**
-   * 验证
+   * 获取数组结构
    *
-   * @param array $data
-   * @return array
-   * @throws ValidateException
+   * @access public
+   * @return array{string,array}
    */
-  private function validate(array $data): array
+  public function getShape(): array
   {
-    if (empty($this->parseRules)) throw new ValidateException('验证规则不能为空');
+    return $this->shape;
+  }
+
+  /**
+   * 验证数据
+   *
+   * @param array $data 待验证的数据
+   * @return static 验证成功会将数据存于当前对象中，实现了ArrayObject接口，支持像数组一样的操作
+   */
+  public function validate(array $data): static
+  {
+    if (empty($this->shape)) throw new ValidateException('验证规则不能为空');
     $newData = [];
-    foreach ($this->parseRules as $field => $structure) {
+    foreach ($this->shape as $field => $structure) {
       // 字段别名或描述
       $alias = $this->parent . $structure['alias'];
       // 拿到待验证的规则 [rule=>params] | 闭包函数
@@ -83,8 +102,9 @@ abstract class ArrayShape extends ArrayObject
         // 遍历需要校验的规则
         foreach ($rules as $rule => $params) {
           // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
-          if (class_exists($rule) && is_subclass_of($rule, ArrayShape::class)) {
-            new $rule(is_array($value) ? $value : [], "$alias.");
+          if (class_exists($rule) && is_subclass_of($rule, ArrayShapeValidator::class)) {
+            $arrayShape = new $rule("$alias.");
+            $arrayShape->validate(is_array($value) ? $value : []);
           } else {
             $result = ValidateRule::$rule($value, $params);
             if (!$result) {
@@ -102,6 +122,7 @@ abstract class ArrayShape extends ArrayObject
       }
       $newData[$field] = $value;
     }
-    return $newData;
+    $this->exchangeArray($newData);
+    return $this;
   }
 }

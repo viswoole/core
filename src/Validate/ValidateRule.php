@@ -674,6 +674,104 @@ class ValidateRule
   }
 
   /**
+   * 解析规则
+   *
+   * @param array $rules
+   * @return array{
+   *  string:array{
+   *    string:array{
+   *      string,array,
+   *    }|Closure,
+   *  },
+   *  alias:string,
+   * } [ 字段名=>[ 闭包函数 或 [ 规则名称=>[...规则参数] ], alias=>字段别名或描述]]
+   */
+  public static function parseRules(array $rules): array
+  {
+    $parsedRules = [];
+    foreach ($rules as $field => $rule) {
+      $fields = self::parseField($field);
+      // 如果没有设置只验证的字段 或 只验证字段中存在当前字段 则解析验证规则
+      $rule = self::parseRule($rule);
+      foreach ($fields as $item) {
+        $parsedRules[$item['field']] = ['rules' => $rule, 'alias' => $item['alias']];
+      }
+    }
+    return $parsedRules;
+  }
+
+  /**
+   * 解析字段
+   *
+   * @param string $field 字段
+   * @return array{int,array{field:string,alias:string}} [字段名，字段别名或描述]
+   */
+  private static function parseField(string $field): array
+  {
+    $field = str_replace(' ', '', $field);
+    $fields = [];
+    foreach (explode(',', $field) as $item) {
+      if (str_contains($item, '|')) {
+        [$name, $alias] = explode('|', $item, 2);
+      } else {
+        $alias = $item;
+        $name = $item;
+      }
+      $fields[] = ['field' => $name, 'alias' => $alias];
+    }
+    return $fields;
+  }
+
+  /**
+   * 解析验证规则
+   *
+   * @param array|string|Closure $rules
+   * @return array{string,array}|Closure 数组示例[rule=>[...params]]|Closure
+   */
+  private static function parseRule(array|string|Closure $rules): array|Closure
+  {
+    // 如果是字符串转换则分割为数组
+    if (is_string($rules)) $rules = explode('|', $rules);
+    if (is_array($rules)) {
+      $parsedRule = [];
+      foreach ($rules as $ruleName => $params) {
+        if (is_int($ruleName)) {
+          $parsedRule = array_merge($parsedRule, self::parseStringRule($params));
+        } else {
+          $parsedRule[$ruleName] = $params;
+        }
+      }
+      return $parsedRule;
+    } else {
+      // 闭包
+      return $rules;
+    }
+  }
+
+  /**
+   * 解析字符串定义的规则 例如 'require|max:10,in:1,2'
+   *
+   * @param string $rules
+   * @return array{string,array} 返回[规则名称=>参数列表]
+   */
+  private static function parseStringRule(string $rules): array
+  {
+    $rules = explode('|', $rules);
+    $parsedRule = [];
+    foreach ($rules as $rule) {
+      // 判断字符串中是否存在:参数分隔符
+      if (str_contains($rule, ':')) {
+        [$rule, $params] = explode(':', $rule, 2);
+        $parsedRule[trim($rule)] = explode(',', trim($params));
+      } else {
+        // 默认参数空数组
+        $parsedRule[trim($rule)] = [];
+      }
+    }
+    return $parsedRule;
+  }
+
+  /**
    * 判断是否为数组（包括索引数组，和关联数组）
    *
    * @param mixed $value

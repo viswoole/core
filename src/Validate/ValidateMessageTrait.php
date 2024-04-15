@@ -19,7 +19,7 @@ trait ValidateMessageTrait
 {
 
   /**
-   * 用户自定义提示
+   * 自定义验证失败提示消息，支持占位符 {:field} 和 {:param}
    * @var array
    */
   protected array $message;

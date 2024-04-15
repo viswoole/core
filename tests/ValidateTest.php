@@ -17,7 +17,6 @@ namespace ViSwoole\Core\Tests;
 
 use PHPUnit\Framework\TestCase;
 use ViSwoole\Core\Exception\ValidateException;
-use ViSwoole\Core\UserInfo;
 use ViSwoole\Core\Validate;
 
 class ValidateTest extends TestCase
@@ -95,4 +94,16 @@ class ValidateTest extends TestCase
       static::assertTrue(true);
     }
   }
+}
+
+
+class UserInfo extends Validate\ArrayShapeValidator
+{
+  protected array $shape = [
+    'name' => ['required', 'max:40', 'length' => [1, 25]],
+    'info' => ['int']
+  ];
+  protected array $message = [
+    'info.int' => '{:field}验证失败'
+  ];
 }

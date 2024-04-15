@@ -19,10 +19,9 @@ use Closure;
 use InvalidArgumentException;
 use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
-use ViSwoole\Core\Validate\ArrayShape;
+use ViSwoole\Core\Validate\ArrayShapeValidator;
 use ViSwoole\Core\Validate\ValidateMessageTrait;
 use ViSwoole\Core\Validate\ValidateRule;
-use ViSwoole\Core\Validate\ValidateRuleTrait;
 
 /**
  * 数据验证器
@@ -31,9 +30,12 @@ use ViSwoole\Core\Validate\ValidateRuleTrait;
  */
 class Validate implements ValidateInterface
 {
-  use ValidateRuleTrait;
   use ValidateMessageTrait;
 
+  /**
+   * @var array 验证规则
+   */
+  protected array $rules = [];
   /**
    * @var array 场景需要移除的验证规则
    */
@@ -87,8 +89,9 @@ class Validate implements ValidateInterface
           $message = null;
           try {
             // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
-            if (class_exists($rule) && is_subclass_of($rule, ArrayShape::class)) {
-              new $rule(is_array($value) ? $value : [], "$alias.");
+            if (class_exists($rule) && is_subclass_of($rule, ArrayShapeValidator::class)) {
+              $arrayShape = new $rule("$alias.");
+              $arrayShape->validate(is_array($value) ? $value : []);
               $valid = true;
             } else {
               $valid = ValidateRule::$rule($value, $params);
@@ -116,7 +119,7 @@ class Validate implements ValidateInterface
     }
     if (empty($results)) return array_intersect_key(
       $data,
-      array_flip($this->onlyFields ?: array_keys($this->rules))
+      array_flip($this->onlyFields ?? array_keys($this->rules))
     );
     throw new ValidateException($results);
   }
@@ -206,7 +209,7 @@ class Validate implements ValidateInterface
    */
   public function rules(array $rules): ValidateInterface
   {
-    $this->rules = $this->parseRules($rules);
+    $this->rules = ValidateRule::parseRules($rules);
     return $this;
   }
 
