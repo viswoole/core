@@ -305,7 +305,7 @@ class Validate implements ValidateInterface
       }
       return $this;
     }
-    $this->append[$field] = $this->parseRule($rule);
+    $this->append[$field] = ValidateRule::parseRule($rule);
     return $this;
   }
 }

@@ -728,7 +728,7 @@ class ValidateRule
    * @param array|string|Closure $rules
    * @return array{string,array}|Closure 数组示例[rule=>[...params]]|Closure
    */
-  private static function parseRule(array|string|Closure $rules): array|Closure
+  public static function parseRule(array|string|Closure $rules): array|Closure
   {
     // 如果是字符串转换则分割为数组
     if (is_string($rules)) $rules = explode('|', $rules);
