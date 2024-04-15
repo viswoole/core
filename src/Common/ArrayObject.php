@@ -102,6 +102,7 @@ class ArrayObject implements ArrayAccess, Countable, IteratorAggregate, Serializ
   /**
    * 返回数组
    *
+   * @access public
    * @return array
    */
   public function toArray(): array
