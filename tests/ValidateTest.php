@@ -97,7 +97,7 @@ class ValidateTest extends TestCase
 }
 
 
-class UserInfo extends Validate\ArrayShapeValidator
+class UserInfo extends Validate\ArrayShape
 {
   protected array $shape = [
     'name' => ['required', 'max:40', 'length' => [1, 25]],

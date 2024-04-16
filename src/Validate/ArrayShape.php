@@ -22,7 +22,7 @@ use ViSwoole\Core\Exception\ValidateException;
 /**
  * ArrayShape用于支持数组数据结构校验
  */
-abstract class ArrayShapeValidator extends ArrayObject
+abstract class ArrayShape extends ArrayObject
 {
   use ValidateMessageTrait;
 
@@ -102,7 +102,7 @@ abstract class ArrayShapeValidator extends ArrayObject
         // 遍历需要校验的规则
         foreach ($rules as $rule => $params) {
           // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
-          if (class_exists($rule) && is_subclass_of($rule, ArrayShapeValidator::class)) {
+          if (class_exists($rule) && is_subclass_of($rule, ArrayShape::class)) {
             $arrayShape = new $rule("$alias.");
             $arrayShape->validate(is_array($value) ? $value : []);
           } else {
