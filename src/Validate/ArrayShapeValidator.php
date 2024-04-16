@@ -20,7 +20,7 @@ use ViSwoole\Core\Common\ArrayObject;
 use ViSwoole\Core\Exception\ValidateException;
 
 /**
- * ArrayShape用于支持数组数据结构校验
+ * ArrayShape用于支持复杂的数组形状校验，能够无限嵌套校验多维数组
  */
 abstract class ArrayShapeValidator extends ArrayObject
 {
