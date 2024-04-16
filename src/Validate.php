@@ -19,7 +19,7 @@ use Closure;
 use InvalidArgumentException;
 use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
-use ViSwoole\Core\Validate\ArrayShape;
+use ViSwoole\Core\Validate\ArrayShapeValidator;
 use ViSwoole\Core\Validate\ValidateMessageTrait;
 use ViSwoole\Core\Validate\ValidateRule;
 
@@ -89,7 +89,7 @@ class Validate implements ValidateInterface
           $message = null;
           try {
             // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
-            if (class_exists($rule) && is_subclass_of($rule, ArrayShape::class)) {
+            if (class_exists($rule) && is_subclass_of($rule, ArrayShapeValidator::class)) {
               $arrayShape = new $rule("$alias.");
               $arrayShape->validate(is_array($value) ? $value : []);
               $valid = true;
