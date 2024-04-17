@@ -241,7 +241,13 @@ class ValidateRule
       foreach ($array as $item) {
         $valid = false;
         foreach ($validateRules as $rule) {
-          if (method_exists(self::class, $rule) && self::$rule($item)) {
+          if (
+            (
+              method_exists(self::class, $rule)
+              || array_key_exists($rule, self::$rules)
+            )
+            && self::$rule($item)
+          ) {
             $valid = true;
             break;
           }
