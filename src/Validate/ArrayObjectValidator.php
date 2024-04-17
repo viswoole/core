@@ -16,11 +16,12 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Validate;
 
 use ViSwoole\Core\Common\ArrayObject;
+use ViSwoole\Core\Exception\ValidateException;
 
 /**
- * ArrayShape用于支持复杂的数组形状校验，能够无限嵌套校验多维数组
+ * 用于支持复杂的键值对数组既对象验证
  */
-abstract class ArrayShapeValidator extends ArrayObject
+abstract class ArrayObjectValidator extends ArrayObject
 {
   use ValidateTrait;
 
@@ -37,46 +38,49 @@ abstract class ArrayShapeValidator extends ArrayObject
    *
    * @var array
    */
-  protected array $shape = [];
+  protected array $rules = [];
 
   /**
    * @param string $parent 父级字段,用于错误提示
    */
   public function __construct(private readonly string $parent = '')
   {
-    if (!empty($this->shape)) {
+    if (!empty($this->rules)) {
       $cacheKey = md5(get_called_class());
       if (!isset(self::$cacheShape[$cacheKey])) {
-        $this->shape = ValidateRule::parseRules($this->shape);
-        self::$cacheShape[$cacheKey] = $this->shape;
+        $this->rules = ValidateRule::parseRules($this->rules);
+        self::$cacheShape[$cacheKey] = $this->rules;
       } else {
-        $this->shape = self::$cacheShape[$cacheKey];
+        $this->rules = self::$cacheShape[$cacheKey];
       }
     }
     parent::__construct();
   }
 
   /**
-   * 获取数组结构
+   * 获取对象验证规则
    *
    * @access public
    * @return array{string,array}
    */
-  public function getShape(): array
+  public function getRules(): array
   {
-    return $this->shape;
+    return $this->rules;
   }
 
   /**
    * 验证数据
    *
-   * @param array $data 待验证的数据
+   * @param mixed $data 待验证的数据
    * @return static 验证成功会将数据存于当前对象中，实现了ArrayObject接口，支持像数组一样的操作
    */
-  public function validate(array $data): static
+  public function validate(mixed $data): static
   {
+    if (!is_array($data) || array_values($data) === $data) {
+      throw new ValidateException(rtrim($this->parent, '.') . '的值必须为一个对象');
+    }
     $newData = [];
-    foreach ($this->shape as $field => $metadata) {
+    foreach ($this->rules as $field => $metadata) {
       $metadata['alias'] = $this->parent . $metadata['alias'];
       $newData[$field] = $this->validateField($field, $data[$field] ?? null, $metadata);
     }
