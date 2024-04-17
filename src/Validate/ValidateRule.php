@@ -679,12 +679,13 @@ class ValidateRule
    * @param array $rules
    * @return array{
    *  string:array{
-   *    string:array{
-   *      string,array,
+   *    rules:array{
+   *      string:array,
    *    }|Closure,
+   *    alias:string,
+   *    default:mixed,
    *  },
-   *  alias:string,
-   * } [ 字段名=>[ 闭包函数 或 [ 规则名称=>[...规则参数] ], alias=>字段别名或描述]]
+   * } [ 字段名=>[ 闭包函数 或 [ 规则名称=>[...规则参数] ], alias=>字段别名,default=>默认值]]
    */
   public static function parseRules(array $rules): array
   {
@@ -694,7 +695,42 @@ class ValidateRule
       // 如果没有设置只验证的字段 或 只验证字段中存在当前字段 则解析验证规则
       $rule = self::parseRule($rule);
       foreach ($fields as $item) {
-        $parsedRules[$item['field']] = ['rules' => $rule, 'alias' => $item['alias']];
+        // 字段为空时的默认值
+        if (array_key_exists('default', $rule)) {
+          if (empty($rule['default'])) {
+            $default = null;
+          } else {
+            $default = $rule['default'][0];
+          }
+          unset($rule['default']);
+        } else {
+          $default = null;
+        }
+        // 字段说明
+        if (array_key_exists('doc', $rule)) {
+          if (empty($rule['doc'])) {
+            $doc = null;
+          } else {
+            $doc = $rule['doc'][0];
+          }
+          unset($rule['doc']);
+        } else {
+          $doc = null;
+        }
+        // 字段是否为必填
+        if (array_key_exists('required', $rule)) {
+          unset($rule['required']);
+          $required = true;
+        } else {
+          $required = false;
+        }
+        $parsedRules[$item['field']] = [
+          'rules' => $rule,
+          'alias' => $item['alias'],
+          'default' => $default,
+          'doc' => $doc,
+          'required' => $required
+        ];
       }
     }
     return $parsedRules;
@@ -738,7 +774,7 @@ class ValidateRule
         if (is_int($ruleName)) {
           $parsedRule = array_merge($parsedRule, self::parseStringRule($params));
         } else {
-          $parsedRule[$ruleName] = $params;
+          $parsedRule[$ruleName] = is_array($params) ? $params : [$params];
         }
       }
       return $parsedRule;

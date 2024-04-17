@@ -15,9 +15,9 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
-use ViSwoole\Core\Server\Contract\RequestInterface;
-use ViSwoole\Core\Server\Http\Facades\Request;
-use ViSwoole\Core\Server\Http\Facades\Response;
+use ViSwoole\HttpServer\Contract\RequestInterface;
+use ViSwoole\HttpServer\Facades\Request;
+use ViSwoole\HttpServer\Facades\Response;
 
 class MiddlewareManager
 {
