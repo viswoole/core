@@ -64,7 +64,7 @@ trait ValidateTrait
         // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
         if (class_exists($rule) && is_subclass_of($rule, ArrayShapeValidator::class)) {
           $arrayShape = new $rule("$alias.");
-          $arrayShape->validate(is_array($value) ? $value : []);
+          $value = $arrayShape->validate(is_array($value) ? $value : []);
         } else {
           $result = ValidateRule::$rule($value, $params);
           if (!$result) {
