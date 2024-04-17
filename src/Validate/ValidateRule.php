@@ -679,13 +679,15 @@ class ValidateRule
    * @param array $rules
    * @return array{
    *  string:array{
+   *    required:bool,
+   *    default:mixed,
    *    rules:array{
    *      string:array,
    *    }|Closure,
    *    alias:string,
-   *    default:mixed,
+   *    illustrate:string,
    *  },
-   * } [ 字段名=>[ 闭包函数 或 [ 规则名称=>[...规则参数] ], alias=>字段别名,default=>默认值]]
+   * } [ 字段名=>[ 闭包函数 或 [ 规则名称=>[...规则参数] ], alias=>字段别名,default=>默认值,illustrate=>'字段说明',required=>bool]]
    */
   public static function parseRules(array $rules): array
   {
@@ -695,41 +697,32 @@ class ValidateRule
       // 如果没有设置只验证的字段 或 只验证字段中存在当前字段 则解析验证规则
       $rule = self::parseRule($rule);
       foreach ($fields as $item) {
-        // 字段为空时的默认值
-        if (array_key_exists('default', $rule)) {
-          if (empty($rule['default'])) {
-            $default = null;
-          } else {
-            $default = $rule['default'][0];
+        $default = null;
+        $doc = '';
+        $required = false;
+        if (is_array($rule)) {
+          // 字段为空时的默认值
+          if (array_key_exists('default', $rule)) {
+            $default = empty($rule['default']) ? null : $rule['default'][0];
+            unset($rule['default']);
           }
-          unset($rule['default']);
-        } else {
-          $default = null;
-        }
-        // 字段说明
-        if (array_key_exists('doc', $rule)) {
-          if (empty($rule['doc'])) {
-            $doc = null;
-          } else {
-            $doc = $rule['doc'][0];
+          // 字段说明
+          if (array_key_exists('doc', $rule)) {
+            $doc = empty($rule['doc']) ? '' : $rule['doc'][0];
+            unset($rule['doc']);
           }
-          unset($rule['doc']);
-        } else {
-          $doc = null;
-        }
-        // 字段是否为必填
-        if (array_key_exists('required', $rule)) {
-          unset($rule['required']);
-          $required = true;
-        } else {
-          $required = false;
+          // 字段是否为必填
+          if (array_key_exists('required', $rule)) {
+            $required = true;
+            unset($rule['required']);
+          }
         }
         $parsedRules[$item['field']] = [
+          'required' => $required,
           'rules' => $rule,
           'alias' => $item['alias'],
           'default' => $default,
-          'doc' => $doc,
-          'required' => $required
+          'illustrate' => $doc,
         ];
       }
     }

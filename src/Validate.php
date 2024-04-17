@@ -17,11 +17,11 @@ namespace ViSwoole\Core;
 
 use Closure;
 use InvalidArgumentException;
+use JetBrains\PhpStorm\ArrayShape;
 use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
-use ViSwoole\Core\Validate\ArrayShapeValidator;
-use ViSwoole\Core\Validate\ValidateMessageTrait;
 use ViSwoole\Core\Validate\ValidateRule;
+use ViSwoole\Core\Validate\ValidateTrait;
 
 /**
  * 数据验证器
@@ -30,11 +30,12 @@ use ViSwoole\Core\Validate\ValidateRule;
  */
 class Validate implements ValidateInterface
 {
-  use ValidateMessageTrait;
+  use ValidateTrait;
 
   /**
    * @var array 验证规则
    */
+  #[ArrayShape(['string' => ['required' => 'bool', 'default' => 'mixed', 'rules' => 'array|Closure', 'alias' => 'string', 'illustrate' => 'string']])]
   protected array $rules = [];
   /**
    * @var array 场景需要移除的验证规则
@@ -64,64 +65,27 @@ class Validate implements ValidateInterface
   {
     if (empty($this->rules)) throw new ValidateException('验证规则不能为空');
     $this->resetScene();
+    $newData = [];
     $results = [];
-    foreach ($this->rules as $field => $structure) {
+    foreach ($this->rules as $field => $metadata) {
       // 如果设置了只验证的字段则判断，则判断当前字段是否需要验证。
       if (isset($this->onlyFields) && !in_array($field, $this->onlyFields)) continue;
-      // 字段别名或描述
-      $alias = $structure['alias'];
       // 拿到待验证的规则 [rule=>params] | 闭包函数
-      $rules = is_array($structure['rules'])
-        ? $this->rulesToBeVerified($field, $structure['rules'])
-        : $structure['rules'];
-      /** @var $value mixed 字段值，不存在则为null */
-      $value = $data[$field] ?? null;
-      // 开始验证
-      if ($rules instanceof Closure) {
-        // 如果是闭包则直接验证
-        $results[$field] = $this->closureCheck($rules, $value, $alias, $batch);
-      } else {
-        // 如果参数非必填且为空则跳过验证
-        if (empty($value) && !array_key_exists('required', $rules)) continue;
-        // 遍历需要校验的规则
-        foreach ($rules as $rule => $params) {
-          /** @var $message string 错误提示信息 */
-          $message = null;
-          try {
-            // 判断规则是否为ArrayShape，如果是则使用ArrayShape进行验证
-            if (class_exists($rule) && is_subclass_of($rule, ArrayShapeValidator::class)) {
-              $arrayShape = new $rule("$alias.");
-              $arrayShape->validate(is_array($value) ? $value : []);
-              $valid = true;
-            } else {
-              $valid = ValidateRule::$rule($value, $params);
-            }
-          } catch (ValidateException $e) {
-            $message = $e->getMessage();
-            $valid = false;
-          }
-          if ($valid) continue;
-          $message = $message ?: $this->getErrorMessage(
-            $field,
-            $alias,
-            $rule,
-            $params,
-            ValidateRule::getError($rule)
-          );
-          if (!$batch) {
-            throw new ValidateException($message);
-          } else {
-            $results[$field] = $message;
-            break;
-          }
+      $metadata['rules'] = is_array($metadata['rules'])
+        ? $this->rulesToBeVerified($field, $metadata['rules'])
+        : $metadata['rules'];
+      try {
+        $newData[$field] = $this->validateField($field, $data[$field] ?? null, $metadata);
+      } catch (ValidateException $e) {
+        if ($batch) {
+          $results[$field] = $e->getMessage();
+        } else {
+          throw $e;
         }
       }
     }
-    if (empty($results)) return array_intersect_key(
-      $data,
-      array_flip($this->onlyFields ?? array_keys($this->rules))
-    );
-    throw new ValidateException($results);
+    if (!empty($results)) throw new ValidateException($results);
+    return $newData;
   }
 
   /**
@@ -161,43 +125,6 @@ class Validate implements ValidateInterface
       $rules = array_merge_recursive($rules, $this->append[$field]);
     }
     return $rules;
-  }
-
-  /**
-   * 闭包验证
-   *
-   * @param Closure $Closure
-   * @param mixed $value
-   * @param string $alias
-   * @param bool $batch
-   * @return true|string
-   */
-  private function closureCheck(
-    Closure $Closure,
-    mixed   $value,
-    string  $alias,
-    bool    $batch
-  ): true|string
-  {
-    try {
-      $result = $Closure($value, $alias);
-      if ($result !== true) {
-        $message = is_string($result) ? $result : "{$alias}验证失败";
-        $result = false;
-      }
-    } catch (ValidateException $e) {
-      $result = false;
-      $message = $e->getMessage();
-    }
-    // 如果非批量验证则抛出异常
-    if (!$result) {
-      if (!$batch) {
-        throw new ValidateException($message);
-      } else {
-        return $message;
-      }
-    }
-    return true;
   }
 
   /**
@@ -307,5 +234,42 @@ class Validate implements ValidateInterface
     }
     $this->append[$field] = ValidateRule::parseRule($rule);
     return $this;
+  }
+
+  /**
+   * 闭包验证
+   *
+   * @param Closure $Closure
+   * @param mixed $value
+   * @param string $alias
+   * @param bool $batch
+   * @return true|string
+   */
+  private function closureCheck(
+    Closure $Closure,
+    mixed   $value,
+    string  $alias,
+    bool    $batch
+  ): true|string
+  {
+    try {
+      $result = $Closure($value, $alias);
+      if ($result !== true) {
+        $message = is_string($result) ? $result : "{$alias}验证失败";
+        $result = false;
+      }
+    } catch (ValidateException $e) {
+      $result = false;
+      $message = $e->getMessage();
+    }
+    // 如果非批量验证则抛出异常
+    if (!$result) {
+      if (!$batch) {
+        throw new ValidateException($message);
+      } else {
+        return $message;
+      }
+    }
+    return true;
   }
 }
