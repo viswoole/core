@@ -109,8 +109,7 @@ class Facade extends Command
       $modifiedStr = str_replace('\\', '\\\\', $namespace);
       $resultString = "/**\n$classDoc$docMethodBody\n *\n * 优化命令：php viswoole optimize:facade $modifiedStr\n */";
       $this->write($file, $line, $resultString);
-      $io->success("已将以下注释写入到{$file}文件中\n务必检查语法是否正确");
-      echo $resultString . PHP_EOL;
+      $io->success("已将@method注释写入到{$file}文件中\n务必检查语法是否正确");
     } catch (Throwable $e) {
       $io->error($e->getMessage());
       return Command::FAILURE;
@@ -155,10 +154,8 @@ class Facade extends Command
     foreach ($data['params'] as $key => $structure) {
       $params .= " {$structure['type']} $$key";
       if ($structure['isDefaultValueAvailable']) {
-        $val = is_string(
-          $structure['default']
-        ) ? "'{$structure['default']}'" : $structure['default'];
-        $params .= $val;
+        $val = $structure['type'] === 'string' ? "'{$structure['default']}'" : $structure['default'];
+        $params .= " = $val";
       }
       $params .= ',';
     }
@@ -187,7 +184,6 @@ class Facade extends Command
     $lines = explode(PHP_EOL, $fileContents);
     array_splice($lines, $line, 0, $string);
     $newFileContents = implode(PHP_EOL, $lines);
-    echo $newFileContents;
     // 将修改后的内容写回文件
     file_put_contents($file, $newFileContents);
   }
