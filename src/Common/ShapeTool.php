@@ -15,15 +15,20 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core\Common;
 
+use Closure;
+use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionFunction;
 use ReflectionIntersectionType;
+use ReflectionMethod;
 use ReflectionNamedType;
+use ReflectionParameter;
 use ReflectionProperty;
 use ReflectionUnionType;
 
 /**
- * 类形状生成工具
+ * 形状解析工具
  */
 final class ShapeTool
 {
@@ -35,6 +40,16 @@ final class ShapeTool
   /**
    * 获取类的属性结构
    *
+   * Example usage:
+   * ```
+   * class MyClass{
+   *   public string $name = 'viswoole';
+   * }
+   * $shape = ShapeTool::getPropertyShape(MyClass::class);
+   * var_dump($shape);
+   * // $shape如下
+   * $shape = ['name'=>['types'=>['name'=>'string', 'isBuiltin'=>true],'required'=>false,'default'=>'viswoole','annotation'=>''];
+   * ```
    * @access public
    * @param object|string $objectOrClass
    * @param int $filter 默认ReflectionProperty::IS_PUBLIC，公开属性
@@ -52,7 +67,7 @@ final class ShapeTool
    * } 类的Public属性结构
    * @throws ReflectionException
    */
-  public static function getClassPropertyShape(
+  public static function getPropertyShape(
     object|string $objectOrClass,
     int           $filter = ReflectionProperty::IS_PUBLIC,
     bool          $cache = true
@@ -71,51 +86,80 @@ final class ShapeTool
     // 属性结构
     $shape = [];
     foreach ($properties as $property) {
-      // 属性说明
-      $annotation = self::extractAnnotation($property->getDocComment());
-      // 得到属性类型
-      $propertyType = $property->getType();
+      /** 属性注释 */
+      $doc = $property->getDocComment();
       /** 属性名称 */
       $name = $property->getName();
-      /** 属性默认值 */
-      $default = $property->getDefaultValue();
-      /** 是否允许为null */
-      $required = false;
-      /** 支持的类型 */
-      $types = [['name' => 'mixed', 'isBuiltin' => true]];
-      // 如果属性给定了类型 则处理类型
-      if (!is_null($propertyType)) {
-        $required = !$propertyType->allowsNull();
-        if (
-          $propertyType instanceof ReflectionUnionType
-          || $propertyType instanceof ReflectionIntersectionType
-        ) {
-          // 联合类型
-          $types = [];
-          foreach ($propertyType->getTypes() as $typeItem) {
-            $types[] = ['name' => $typeItem->getName(), 'isBuiltin' => $typeItem->isBuiltin()];
-          }
-        } elseif ($propertyType instanceof ReflectionNamedType) {
-          // 独立的类型
-          $types = [[
-            'name' => $propertyType->getName(),
-            'isBuiltin' => $propertyType->isBuiltin()
-          ]];
-        }
-      }
-      $shape[$name] = compact('types', 'required', 'default', 'annotation');
+      $shape[$name] = self::parseTypeShape($doc, $property);
     }
     if ($cache) self::$cacheShape[$hash] = $shape;
     return $shape;
   }
 
   /**
-   * 提取doc注释
+   * 解析类型结构
+   *
+   * @return array{required:bool, types: array{name:string, isBuiltin:bool},default:mixed,annotation:string}
+   */
+  private static function parseTypeShape(
+    string|false $doc, ReflectionProperty|ReflectionParameter $reflector
+  ): array
+  {
+    /** 属性说明 */
+    $annotation = '';
+    if ($doc) {
+      if ($reflector instanceof ReflectionProperty) {
+        // 提取属性注释说明部分
+        $annotation = self::extractPropertyTypeAnnotation($doc);
+      } else {
+        $annotation = self::extractParamTypeAnnotation($doc, $reflector->getName());
+      }
+    }
+    /** 类型 */
+    $type = $reflector->getType();
+    try {
+      /** 属性默认值 */
+      $default = $reflector->getDefaultValue();
+      /** 是否必填 */
+      $required = false;
+    } catch (ReflectionException) {
+      // 如果非可选参数设置为null
+      $default = null;
+      // 必填参数
+      $required = true;
+    }
+    /** 支持的类型 */
+    $types = [['name' => 'mixed', 'isBuiltin' => true]];
+    // 如果属性给定了类型 则处理类型
+    if (!is_null($type)) {
+      $required = !$reflector->allowsNull();
+      if (
+        $type instanceof ReflectionUnionType
+        || $type instanceof ReflectionIntersectionType
+      ) {
+        // 联合类型
+        $types = [];
+        foreach ($type->getTypes() as $typeItem) {
+          $types[] = ['name' => $typeItem->getName(), 'isBuiltin' => $typeItem->isBuiltin()];
+        }
+      } elseif ($type instanceof ReflectionNamedType) {
+        // 独立的类型
+        $types = [[
+          'name' => $type->getName(),
+          'isBuiltin' => $type->isBuiltin()
+        ]];
+      }
+    }
+    return compact('types', 'required', 'default', 'annotation');
+  }
+
+  /**
+   * 从注释文档中提取到属性说明
    *
    * @param string $doc
    * @return string
    */
-  private static function extractAnnotation(string $doc): string
+  private static function extractPropertyTypeAnnotation(string $doc): string
   {
     if (preg_match(
       '/@var\s+(\S+)\s+(\S+)/', $doc ?: '',
@@ -128,33 +172,68 @@ final class ShapeTool
   }
 
   /**
-   * 从注释中获取var类型注释
+   * 从注释文档中提取到参数说明
+   *
+   * @param string $doc 完整的doc注释
+   * @param string $param_name 参数名称
+   * @return string
+   */
+  private static function extractParamTypeAnnotation(string $doc, string $param_name): string
+  {
+    if (preg_match(
+      '/@param\s+(\S+)\s+(\$' . preg_quote($param_name, '/') . ')\s+(\S+)/', $doc ?: '',
+      $matches
+    )) {
+      $doc = end($matches);
+      return $doc ?: '';
+    }
+    return '';
+  }
+
+  /**
+   * 获取函数、方法或类构造函数的参数类型结构
    *
    * Example usage:
-   * ```
-   *  // 由于注释冲突问题在示例中没有编写完整的属性注释文档结构
-   *  class UserInfo{
-   *    // 假设 $name属性设置了`var string 姓名`注释
-   *    public string $name;
-   *  }
-   * // 得到是$type结果为 ['var string 姓名'，'string','姓名']
-   *  $type = ShapeTool::getTypeNameFromAnnotation(UserInfo::class, 'name');
-   * ```
+   *  ```
+   *  $shape = ShapeTool::getParamTypeShape(function (\App\DataSet\User $user){});
+   *  var_dump($shape);
+   *  // $shape如下
+   *  $shape = ['user'=>['types'=>['name'=>'\App\DataSet\User', 'isBuiltin'=>false],'required'=>false,'default'=>null,'annotation'=>''];
+   *  ```
+   *
    * @access public
-   * @param string $className 类名
-   * @param string $propertyName 属性名称
-   * @return array|null 提取到的类型注释
-   * @throws ReflectionException
+   * @param callable|string $callable
+   * @return array
+   * @throws ReflectionException|InvalidArgumentException 如果$callable不正确会抛出反射异常或参数无效异常
    */
-  public static function getTypeNameFromAnnotation(
-    string $className,
-    string $propertyName,
-  ): ?array
+  public static function getParamTypeShape(callable|string $callable): array
   {
-    $rp = new ReflectionProperty($className, $propertyName);
-    if (preg_match('/@var\s+(\S+)\s+(\S+)/', $rp->getDocComment(), $matches)) {
-      return $matches;
+    if ($callable instanceof Closure) {
+      $reflection = new ReflectionFunction($callable);
+    } elseif (is_array($callable)) {
+      $reflection = new ReflectionMethod($callable[0], $callable[1]);
+    } elseif (is_string($callable)) {
+      if (str_contains($callable, '::')) {
+        $reflection = new ReflectionMethod($callable);
+      } elseif (class_exists($callable)) {
+        $reflection = (new ReflectionClass($callable))->getConstructor();
+        // 如果没有构造函数 则返回空数组
+        if (is_null($reflection)) return [];
+      } elseif (function_exists($callable)) {
+        $reflection = new ReflectionFunction($callable);
+      }
     }
-    return null;
+    if (!isset($reflection)) throw new InvalidArgumentException(
+      '$callable参数类型必须是Closure|[class|object,method]|class::method|function_name|class_name'
+    );
+    $params = $reflection->getParameters();
+    $doc = $reflection->getDocComment();
+    $shape = [];
+    foreach ($params as $param) {
+      /** 参数名称 */
+      $name = $param->getName();
+      $shape[$name] = self::parseTypeShape($doc, $param);
+    }
+    return $shape;
   }
 }
