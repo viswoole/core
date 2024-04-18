@@ -169,7 +169,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     try {
       $reflect = new ReflectionFunction($function);
     } catch (ReflectionException $e) {
-      throw new FuncNotFoundException("函数不存在$function()", $function, $e);
+      throw new FuncNotFoundException("函数不存在$function()", $e);
     }
     $args = $this->bindParams($reflect, $vars);
     return $reflect->invoke(...$args);
@@ -293,21 +293,19 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   {
     if ($callable instanceof Closure) {
       return $this->invokeFunction($callable, $vars);
-    }
-
-    if (is_array($callable) || str_contains($callable, '::')) {
+    } elseif (is_array($callable)) {
       return $this->invokeMethod($callable, $vars);
-    }
-
-    if (class_exists($callable)) {
-      return $this->invokeClass($callable, $vars);
-    }
-
-    if (function_exists($callable)) {
-      return $this->invokeFunction($callable, $vars);
+    } elseif (is_string($callable)) {
+      if (str_contains($callable, '::')) {
+        return $this->invokeMethod($callable, $vars);
+      } elseif (class_exists($callable)) {
+        return $this->invokeClass($callable, $vars);
+      } elseif (function_exists($callable)) {
+        return $this->invokeFunction($callable, $vars);
+      }
     }
     // 如果找不到对应的函数或类，抛出异常
-    throw new FuncNotFoundException("{$callable}函数或类未找到", $callable);
+    throw new FuncNotFoundException("{$callable}函数或类未找到");
   }
 
   /**
@@ -319,18 +317,19 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   public function invokeMethod(array|string $method, array $vars = []): mixed
   {
-    // 解析方法
-    [$class, $method] = is_array($method) ? $method : explode('::', $method);
-    // 创建实例
-    $instance = is_object($class) ? $class : $this->invokeClass($class);
+    $instance = null;
     try {
-      // 获取方法的反射信息
-      $reflect = new ReflectionMethod($instance, $method);
+      if (is_array($method)) {
+        // 创建实例
+        $instance = is_object($method[0]) ? $method[0] : $this->invokeClass($method[0]);
+        $reflect = new ReflectionMethod($instance, $method[1]);
+      } else {
+        $reflect = new ReflectionMethod($method);
+      }
     } catch (ReflectionException $e) {
-      $class = is_object($class) ? get_class($class) : $class;
+      $class = is_object($instance) ? get_class($instance) : explode('::', $method)[0];
       throw new MethodNotFoundException(
-        "在{$class}类中未找到{$method}方法，或类不存在：{$e->getMessage()}",
-        "$class::$method",
+        $e->getMessage(),
         $e
       );
     }
@@ -338,12 +337,11 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     $args = $this->bindParams($reflect, $vars);
     try {
       // 调用方法并传入参数
-      return $reflect->invokeArgs(is_object($instance) ? $instance : null, $args);
+      return $reflect->invokeArgs($instance, $args);
     } catch (ReflectionException $e) {
       $class = is_object($class) ? get_class($class) : $class;
       throw new MethodNotFoundException(
         "在{$class}类中未找到{$method}方法：{$e->getMessage()}",
-        "$class::$method",
         $e
       );
     }
@@ -361,7 +359,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   public function invokeClass(string $class, array $vars = []): mixed
   {
     if (!class_exists($class)) throw new ClassNotFoundException(
-      "需要反射执行的类{$class}不存在", $class
+      "需要反射执行的类{$class}不存在"
     );
     $reflector = new ReflectionClass($class);
     // 判断是否存在自定义__make方法
