@@ -23,19 +23,9 @@ use Throwable;
  */
 abstract class NotFoundExceptionAbstract extends ContainerException implements NotFoundExceptionInterface
 {
-  public function __construct(string $message, protected string $name, Throwable $previous = null)
+  public function __construct(string $message, Throwable $previous = null)
   {
     $this->message = $message;
-    parent::__construct($message, -404, $previous);
-  }
-
-  /**
-   * 获取方法名或类名
-   * @access public
-   * @return string
-   */
-  public function getName(): string
-  {
-    return $this->name;
+    parent::__construct($message, 504, $previous);
   }
 }
