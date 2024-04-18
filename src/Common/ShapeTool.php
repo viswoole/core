@@ -202,7 +202,7 @@ final class ShapeTool
    *  ```
    *
    * @access public
-   * @param callable|string $callable
+   * @param callable|string $callable 函数、[object|class,method]或类名称
    * @return array
    * @throws ReflectionException|InvalidArgumentException 如果$callable不正确会抛出反射异常或参数无效异常
    */
