@@ -126,4 +126,23 @@ if (!function_exists('dump')) {
     Output::dump($data, $title, $color, $backtrace === 0 ? 0 : 2);
   }
 }
+if (!function_exists('echo_log')) {
+  /**
+   * 输出一个日志
+   *
+   * @access public
+   * @param int|string $message 日志消息
+   * @param string $color 颜色
+   * @param int $backtrace 1为输出调用源，0为不输出
+   * @return void
+   */
+  function echo_log(
+    int|string $message,
+    string     $color = Output::COLORS['GREEN'],
+    int        $backtrace = 1
+  ): void
+  {
+    Output::echo($message, $color, $backtrace === 0 ? 0 : 2);
+  }
+}
 
