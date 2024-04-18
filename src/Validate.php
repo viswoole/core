@@ -235,41 +235,4 @@ class Validate implements ValidateInterface
     $this->append[$field] = ValidateRule::parseRule($rule);
     return $this;
   }
-
-  /**
-   * 闭包验证
-   *
-   * @param Closure $Closure
-   * @param mixed $value
-   * @param string $alias
-   * @param bool $batch
-   * @return true|string
-   */
-  private function closureCheck(
-    Closure $Closure,
-    mixed   $value,
-    string  $alias,
-    bool    $batch
-  ): true|string
-  {
-    try {
-      $result = $Closure($value, $alias);
-      if ($result !== true) {
-        $message = is_string($result) ? $result : "{$alias}验证失败";
-        $result = false;
-      }
-    } catch (ValidateException $e) {
-      $result = false;
-      $message = $e->getMessage();
-    }
-    // 如果非批量验证则抛出异常
-    if (!$result) {
-      if (!$batch) {
-        throw new ValidateException($message);
-      } else {
-        return $message;
-      }
-    }
-    return true;
-  }
 }
