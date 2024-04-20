@@ -67,7 +67,7 @@ final class ShapeTool
    * } 类的Public属性结构
    * @throws ReflectionException
    */
-  public static function getPropertyShape(
+  public static function getClassPropertyShape(
     object|string $objectOrClass,
     int           $filter = ReflectionProperty::IS_PUBLIC,
     bool          $cache = true
@@ -188,6 +188,25 @@ final class ShapeTool
       return $doc ?: '';
     }
     return '';
+  }
+
+  /**
+   * 获取类指定属性的类型
+   *
+   * @access public
+   * @param object|string $objectOrClass
+   * @param string $property_name
+   * @return null|array{required:bool, types: array{name:string, isBuiltin:bool},default:mixed,annotation:string}
+   */
+  public static function getPropertyShape(object|string $objectOrClass, string $property_name
+  ): ?array
+  {
+    try {
+      $Reflection = new ReflectionProperty($objectOrClass, $property_name);
+      return self::parseTypeShape($Reflection->getDocComment(), $Reflection);
+    } catch (ReflectionException) {
+      return null;
+    }
   }
 
   /**
