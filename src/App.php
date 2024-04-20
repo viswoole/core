@@ -42,7 +42,6 @@ class App extends Container
     'env' => Env::class,
     'config' => Config::class,
     'console' => Console::class,
-    'log' => LogManager::class,
     'event' => Event::class,
     'validate' => Validate::class,
     'server' => Server::class,
