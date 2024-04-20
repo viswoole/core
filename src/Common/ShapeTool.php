@@ -45,10 +45,10 @@ final class ShapeTool
    * class MyClass{
    *   public string $name = 'viswoole';
    * }
-   * $shape = ShapeTool::getPropertyShape(MyClass::class);
+   * $shapes = ShapeTool::getPropertyShape(MyClass::class);
    * var_dump($shape);
    * // $shape如下
-   * $shape = ['name'=>['types'=>['name'=>'string', 'isBuiltin'=>true],'required'=>false,'default'=>'viswoole','annotation'=>''];
+   * $shapes = ['name'=>['types'=>['name'=>'string', 'isBuiltin'=>true],'required'=>false,'default'=>'viswoole','annotation'=>''];
    * ```
    * @access public
    * @param object|string $objectOrClass
@@ -195,10 +195,10 @@ final class ShapeTool
    *
    * Example usage:
    *  ```
-   *  $shape = ShapeTool::getParamTypeShape(function (\App\DataSet\User $user){});
+   *  $shapes = ShapeTool::getParamTypeShape(function (\App\DataSet\User $user){});
    *  var_dump($shape);
    *  // $shape如下
-   *  $shape = ['user'=>['types'=>['name'=>'\App\DataSet\User', 'isBuiltin'=>false],'required'=>false,'default'=>null,'annotation'=>''];
+   *  $shapes = ['user'=>['types'=>['name'=>'\App\DataSet\User', 'isBuiltin'=>false],'required'=>false,'default'=>null,'annotation'=>''];
    *  ```
    *
    * @access public
