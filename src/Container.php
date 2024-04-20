@@ -1,4 +1,4 @@
-<?php /** @noinspection PhpClassHasTooManyDeclaredMembersInspection */
+<?php
 /*
  *  +----------------------------------------------------------------------
  *  | ViSwoole [基于swoole开发的高性能快速开发框架]
@@ -19,7 +19,6 @@ use ArrayAccess;
 use ArrayIterator;
 use Closure;
 use Countable;
-use InvalidArgumentException;
 use IteratorAggregate;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -28,11 +27,13 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
-use ReflectionUnionType;
+use ReflectionNamedType;
+use ViSwoole\Core\Common\Arr;
 use ViSwoole\Core\Exception\ClassNotFoundException;
 use ViSwoole\Core\Exception\ContainerException;
 use ViSwoole\Core\Exception\FuncNotFoundException;
 use ViSwoole\Core\Exception\MethodNotFoundException;
+use ViSwoole\Core\Exception\ServiceNotFoundException;
 
 /**
  * 容器与依赖注入类
@@ -83,6 +84,9 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   public function bind(string $abstract, mixed $concrete): void
   {
+    if (isset($this->bindings[$abstract])) {
+      trigger_error('容器中存在相同服务标识覆盖: ' . $abstract . '，请检查', E_USER_WARNING);
+    }
     if ($concrete instanceof Closure) {
       $this->bindings[$abstract] = $concrete;
     } elseif (is_object($concrete)) {
@@ -94,18 +98,54 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       $this->singleInstance[$className] = $concrete;
     } elseif (is_string($concrete)) {
       // 如果为无效类名同时未绑定到容器中，则抛出异常
-      if (!class_exists($concrete) && !isset($this->bindings[$concrete])) {
-        throw new InvalidArgumentException(
-          'Container::bind方法参数2错误:给定的字符串非有效类名，且未绑定到容器中'
+      if (!class_exists($concrete) && !$this->has($concrete)) {
+        throw new ContainerException(
+          'Container::bind方法参数2($concrete)错误:给定的字符串非有效类名，且未绑定到容器中'
         );
       }
       // 绑定到容器
       $this->bindings[$abstract] = $concrete;
     } else {
-      throw new InvalidArgumentException(
-        'Container::bind方法参数2错误:绑定到容器的内容必须是可调用的闭包函数、有效的类名、其他已绑定服务标识。'
+      throw new ContainerException(
+        'Container::bind方法参数2($concrete)错误:绑定到容器的内容必须是可调用的闭包函数|有效的类名|类实例|其他已绑定服务标识。'
       );
     }
+  }
+
+  /**
+   * 通过标识、接口、类名判断是否已注册服务
+   *
+   * @param string $id
+   * @return bool
+   */
+  #[Override] public function has(string $id): bool
+  {
+    // 通过标识获取到真实映射的类名
+    $concrete = $this->getTheRealConcrete($id);
+    if ($concrete !== $id) return true;
+    return isset($this->bindings[$id]) || isset($this->singleInstance[$id]);
+  }
+
+  /**
+   * 通过标识获取到真实映射的类名
+   *
+   * @param string $abstract 标识
+   * @return string|Closure 获取真实的类名或函数
+   */
+  protected function getTheRealConcrete(string $abstract): string|Closure
+  {
+    if (isset($this->bindings[$abstract])) {
+      $bind = $this->bindings[$abstract];
+      // 如果是闭包则直接返回闭包
+      if ($bind instanceof Closure) return $bind;
+      // 判断是否为字符串，为字符串则继续递归判断
+      if (is_string($bind)) {
+        // 避免死循环
+        if ($bind === $abstract) return $bind;
+        return $this->getTheRealConcrete($bind);
+      }
+    }
+    return $abstract;
   }
 
   /**
@@ -182,44 +222,69 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @param array $vars 传递的参数数组
    * @return array
    */
-  protected function bindParams(ReflectionFunctionAbstract $reflect, array $vars = []): array
+  private function bindParams(ReflectionFunctionAbstract $reflect, array $vars = []): array
   {
     // 获取参数列表
     $params = $reflect->getParameters();
-    $isIndexArray = key($vars) === 0;
-    // 如果方法或函数接收的是一个可变参数，则直接返回参数变量列表
-    if (!empty($params) && $params[0]->isVariadic()) {
-      return $vars;
-    }
+    // 如果没有参数 则返回空待注入参数数组
+    if (empty($params)) return [];
+    // 判断是否为索引数组
+    $isIndexArray = array_values($vars) === $vars;
     $args = [];
     foreach ($params as $index => $param) {
-      $paramName = $param->getName();
+      // 如果是可变参数则返回参数数组
+      if ($param->isVariadic()) return array_merge($args, $vars);
+      /** 参数类型 */
       $paramType = $param->getType();
-      // 根据数组类型决定使用索引或参数名
-      $key = $isIndexArray ? $index : $paramName;
-      // 如果参数类型是联合类型
-      // 判断参数接收的类型是否为内置类型或为联合类型
-      if (!$paramType || $paramType->isBuiltin() || $paramType instanceof ReflectionUnionType) {
-        // 检查是否传入了该下标或参数名
-        if (array_key_exists($key, $vars)) {
-          $value = $vars[$key];
-        } elseif ($param->isDefaultValueAvailable()) {
-          $value = $param->getDefaultValue();
-        } else {
-          $funcName = $reflect->getName();
-          throw new InvalidArgumentException(
-            "在执行容器反射调用{$funcName}时未传递其必填参数$paramName"
-          );
-        }
+      // 参数名称
+      $name = $param->getName();
+      // 键
+      $key = $isIndexArray ? $index : $name;
+      // 参数默认值
+      $default = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
+      if (is_null($paramType)) {
+        $value = Arr::arrayPopValue($vars, $key, $default);
+      } elseif ($paramType instanceof ReflectionNamedType) {
+        $value = $this->bindValue($vars, $paramType, $key, $default);
       } else {
-        // 如果传入了参数名，则使用传入的值；否则，创建实例
-        $value = array_key_exists($key, $vars)
-          ? $vars[$key]
-          : $this->make($paramType->getName());
+        // 联合类型直接获取
+        $value = Arr::arrayPopValue($vars, $key, $default);
       }
       $args[$key] = $value;
     }
     return $args;
+  }
+
+  /**
+   * 绑定依赖注入的值
+   *
+   * @param array $vars 传递的参数数组
+   * @param ReflectionNamedType $paramType 参数类型
+   * @param string|int $key 参数名称
+   * @param mixed|null $default 默认值
+   * @return mixed
+   */
+  private function bindValue(
+    array               &$vars,
+    ReflectionNamedType $paramType,
+    string|int          $key,
+    mixed               $default
+  ): mixed
+  {
+    $value = Arr::arrayPopValue($vars, $key, $default);
+    if (!$paramType->isBuiltin()) {
+      $class = $paramType->getName();
+      // 判断是否直接传入了需要注入的类实例
+      if ($value instanceof $class) return $value;
+      if ($this->has($class)) {
+        // 获取依赖
+        $value = $this->make($class, is_array($value) ? $value : [$value]);
+      } else {
+        // 实例化一个类
+        $value = $this->invokeClass($class, is_array($value) ? $value : [$value]);
+      }
+    }
+    return $value;
   }
 
   /**
@@ -231,6 +296,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   public function make(string $abstract, array $vars = []): mixed
   {
+    if (!$this->has($abstract)) throw new ServiceNotFoundException("未找到{$abstract}服务");
     $concrete = $this->getTheRealConcrete($abstract);
     $key = is_string($concrete) ? $concrete : $abstract;
     // 如果已经缓存过实例 直接返回
@@ -241,27 +307,9 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       $concrete,
       $vars
     );
-    // 缓存单实例
-    if (!is_object($result) || !$this->isExclude($result)) $this->singleInstance[$key] = $result;
+    // 判断是否需要缓存单实例
+    if (is_object($result) && !$this->isExclude($result)) $this->singleInstance[$key] = $result;
     return $result;
-  }
-
-  /**
-   * 通过标识获取到真实映射的类名
-   *
-   * @param string $abstract 标识
-   * @return string|Closure 获取真实的类名或函数
-   */
-  protected function getTheRealConcrete(string $abstract): string|Closure
-  {
-    if (isset($this->bindings[$abstract])) {
-      $bind = $this->bindings[$abstract];
-      // 如果是闭包则直接返回闭包
-      if ($bind instanceof Closure) return $bind;
-      // 判断是否为字符串，为字符串则继续递归判断
-      if (is_string($bind)) return $this->getTheRealConcrete($bind);
-    }
-    return $abstract;
   }
 
   /**
@@ -275,76 +323,8 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     if (is_string($instance)) return in_array($instance, $this->exclude);
     if (in_array(get_class($instance), $this->exclude)) return true;
     // 遍历匹配整个列表，判断是否需要排除
-    foreach ($this->exclude as $exclude) {
-      if ($instance instanceof $exclude) return true;
-    }
+    foreach ($this->exclude as $exclude) if ($instance instanceof $exclude) return true;
     return false;
-  }
-
-  /**
-   * 调用反射执行函数、匿名函数、以及类或方法，支持依赖注入。
-   *
-   * @access public
-   * @param callable|string $callable 接收[$object|className,$method]或函数,匿名函数，以及类名或函数名
-   * @param array $vars 参数
-   * @return mixed
-   */
-  public function invoke(callable|string $callable, array $vars = []): mixed
-  {
-    if ($callable instanceof Closure) {
-      return $this->invokeFunction($callable, $vars);
-    } elseif (is_array($callable)) {
-      return $this->invokeMethod($callable, $vars);
-    } elseif (is_string($callable)) {
-      if (str_contains($callable, '::')) {
-        return $this->invokeMethod($callable, $vars);
-      } elseif (class_exists($callable)) {
-        return $this->invokeClass($callable, $vars);
-      } elseif (function_exists($callable)) {
-        return $this->invokeFunction($callable, $vars);
-      }
-    }
-    // 如果找不到对应的函数或类，抛出异常
-    throw new FuncNotFoundException("{$callable}函数或类未找到");
-  }
-
-  /**
-   * 调用反射执行类的方法，支持依赖注入。
-   * @access public
-   * @param array|string $method 方法[class,method]|class::method
-   * @param array $vars 参数
-   * @return mixed
-   */
-  public function invokeMethod(array|string $method, array $vars = []): mixed
-  {
-    $instance = null;
-    try {
-      if (is_array($method)) {
-        // 创建实例
-        $instance = is_object($method[0]) ? $method[0] : $this->invokeClass($method[0]);
-        $reflect = new ReflectionMethod($instance, $method[1]);
-      } else {
-        $reflect = new ReflectionMethod($method);
-      }
-    } catch (ReflectionException $e) {
-      $class = is_object($instance) ? get_class($instance) : explode('::', $method)[0];
-      throw new MethodNotFoundException(
-        $e->getMessage(),
-        $e
-      );
-    }
-    // 绑定参数
-    $args = $this->bindParams($reflect, $vars);
-    try {
-      // 调用方法并传入参数
-      return $reflect->invokeArgs($instance, $args);
-    } catch (ReflectionException $e) {
-      $class = is_object($class) ? get_class($class) : $class;
-      throw new MethodNotFoundException(
-        "在{$class}类中未找到{$method}方法：{$e->getMessage()}",
-        $e
-      );
-    }
   }
 
   /**
@@ -428,6 +408,63 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
+   * 调用反射执行函数、匿名函数、以及类或方法，支持依赖注入。
+   *
+   * @access public
+   * @param callable|string $callable 接收[$object|className,$method]或函数,匿名函数，以及类名或函数名
+   * @param array $vars 参数
+   * @return mixed
+   */
+  public function invoke(callable|string $callable, array $vars = []): mixed
+  {
+    if ($callable instanceof Closure) {
+      return $this->invokeFunction($callable, $vars);
+    } elseif (is_array($callable)) {
+      return $this->invokeMethod($callable, $vars);
+    } elseif (is_string($callable)) {
+      if (str_contains($callable, '::')) {
+        return $this->invokeMethod($callable, $vars);
+      } elseif (class_exists($callable)) {
+        return $this->invokeClass($callable, $vars);
+      } elseif (function_exists($callable)) {
+        return $this->invokeFunction($callable, $vars);
+      }
+    }
+    // 如果找不到对应的函数或类，抛出异常
+    throw new FuncNotFoundException("{$callable}函数或类未找到");
+  }
+
+  /**
+   * 调用反射执行类的方法，支持依赖注入。
+   * @access public
+   * @param array|string $method 方法[class,method]|class::method
+   * @param array $vars 参数
+   * @return mixed
+   */
+  public function invokeMethod(array|string $method, array $vars = []): mixed
+  {
+    try {
+      if (is_array($method)) {
+        // 创建实例
+        $instance = is_object($method[0]) ? $method[0] : $this->invokeClass($method[0]);
+        $reflect = new ReflectionMethod($instance, $method[1]);
+      } else {
+        $instance = null;
+        $reflect = new ReflectionMethod($method);
+      }
+      // 绑定参数
+      $args = $this->bindParams($reflect, $vars);
+      // 调用方法并传入参数
+      return $reflect->invokeArgs($instance, $args);
+    } catch (ReflectionException $e) {
+      throw new MethodNotFoundException(
+        $e->getMessage(),
+        $e
+      );
+    }
+  }
+
+  /**
    * 注册一个解析事件回调
    *
    * @access public
@@ -479,29 +516,6 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   #[Override] public function get(string $id): mixed
   {
     return $this->make($id);
-  }
-
-  /**
-   * 判断标识或接口是否已经绑定
-   *
-   * @access public
-   * @param string $abstract
-   * @return bool
-   */
-  public function hasBind(string $abstract): bool
-  {
-    return isset($this->bindings[$abstract]);
-  }
-
-  /**
-   * 通过标识或接口类名判断是否已经绑定或注册单例
-   *
-   * @param string $id
-   * @return bool
-   */
-  #[Override] public function has(string $id): bool
-  {
-    return isset($this->bindings[$id]) || isset($this->singleInstance[$id]);
   }
 
   #[Override] public function getIterator(): ArrayIterator
