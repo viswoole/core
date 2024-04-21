@@ -42,7 +42,7 @@ class Server
   /**
    * @var array 服务
    */
-  protected array $config = [];
+  protected array $config;
   /**
    * @var SwooleServer swoole服务实例
    */
@@ -131,7 +131,7 @@ class Server
     // 全局监听
     $this->global_event = array_merge($default_global_event, config('server.events', []));
     // 初始化加载服务配置
-    $this->config = $this->getConfig($server_name);
+    $this->config = $this->getConfig();
     // 创建服务
     $this->server = $this->createSwooleServer();
   }
@@ -143,17 +143,18 @@ class Server
    * @return array
    * @throws ServerNotFoundException 服务未定义时触发
    */
-  public function getConfig(string $server_name): array
+  public function getConfig(): array
   {
-    $server = config("server.servers.$server_name");
+    if (isset($this->config)) return $this->config;
+    $server = config("server.servers.$this->serverName");
     if (empty($server)) {
       throw new ServerNotFoundException(
-        "{$server_name}服务未定义，请检查$this->rootPath/config/autoload/server.php配置文件。"
+        "{$this->serverName}服务未定义，请检查$this->rootPath/config/autoload/server.php配置文件。"
       );
     }
     if (!($server['type'] ?? '' instanceof SwooleServer)) {
       throw new ServerNotFoundException(
-        "{$server_name}服务type属性配置错误，请检查$this->rootPath/config/autoload/server.php配置文件。"
+        "{$this->serverName}服务type属性配置错误，请检查$this->rootPath/config/autoload/server.php配置文件。"
       );
     }
     // 判断异常处理方法
@@ -173,7 +174,7 @@ class Server
     $server['options'][Constant::OPTION_TASK_ENABLE_COROUTINE] = true;
     // 判断PID存储路径是否设置
     if (empty($server['options'][Constant::OPTION_PID_FILE])) {
-      $server['options'][Constant::OPTION_PID_FILE] = $this->default_pid_store_dir . "/$server_name.pid";
+      $server['options'][Constant::OPTION_PID_FILE] = $this->default_pid_store_dir . "/$this->serverName.pid";
     }
     // 判断PID存储路径是否存在，如果不存在则创建
     $pid_file = $server['options'][Constant::OPTION_PID_FILE];

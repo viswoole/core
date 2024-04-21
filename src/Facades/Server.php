@@ -21,8 +21,7 @@ use ViSwoole\Core\Facade;
 /**
  * Swoole服务管理
  *
- * @method static array getConfig(string $server_name) 获取服务配置
- * @method static bool startServer() 启动服务
+ * @method static array getConfig() 获取服务配置
  * @method static string getName() 获取当前运行的服务名称
  * @method static bool getStatus() 获取服务运行状态
  * @method static \Swoole\Server getServer() 获取服务实例
