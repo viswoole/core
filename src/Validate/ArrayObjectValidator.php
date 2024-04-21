@@ -43,7 +43,7 @@ abstract class ArrayObjectValidator extends ArrayObject
   /**
    * @param string $parent 父级字段,用于错误提示
    */
-  public function __construct(private readonly string $parent = '')
+  final public function __construct(private readonly string $parent = '')
   {
     if (!empty($this->rules)) {
       $cacheKey = md5(get_called_class());
