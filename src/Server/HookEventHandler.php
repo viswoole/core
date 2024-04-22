@@ -49,7 +49,7 @@ class HookEventHandler
    */
   public static function onStart(SwooleServer $server): void
   {
-    Event::emit('serverRun', ['server' => $server]);
+    Event::emit('ServerStart', ['server' => $server]);
     self::runHook(__FUNCTION__, func_get_args());
   }
 
@@ -81,7 +81,7 @@ class HookEventHandler
    */
   public static function onShutdown(SwooleServer $server): void
   {
-    Event::emit('serverEnd', ['server' => $server]);
+    Event::emit('ServerShutdown', ['server' => $server]);
     self::runHook(__FUNCTION__, func_get_args());
   }
 
