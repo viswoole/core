@@ -22,15 +22,15 @@ use ViSwoole\Core\Facade;
 /**
  * App基础容器类
  *
- * @method static void bind(string $abstract, mixed $concrete) 绑定服务到容器中, 支持批量注册。
+ * @method static void bind(string $abstract, object|string $concrete) 绑定服务类到容器中, 支持批量注册。
  * @method static void binds(array $binds) 批量绑定服务到容器中。
  * @method static mixed invokeFunction(Closure|string $function, array $vars = []) 执行闭包函数，支持依赖参数注入。
  * @method static mixed make(string $abstract, array $vars = []) 获取容器中的服务，已经存在则直接获取。
  * @method static mixed invoke(callable|string $callable, array $vars = []) 调用反射执行函数、匿名函数、以及类或方法，支持依赖注入。
  * @method static mixed invokeMethod(array|string $method, array $vars = []) 调用反射执行类的方法，支持依赖注入。
  * @method static mixed invokeClass(string $class, array $vars = []) 调用反射执行类的实例化，支持依赖注入。
- * @method static void resolving(Closure|string $abstract, ?Closure $callback = null) 注册一个解析事件回调
- * @method static void removeCallback(Closure|string $abstract, ?Closure $callback = null) 删除解析事件回调
+ * @method static void resolving(string $abstract, Closure $callback) 注册一个解析事件回调
+ * @method static void removeCallback(string $abstract, Closure $callback) 删除解析事件回调
  * @method static mixed get(string $id) 获取容器中的对象实例
  * @method static bool has(string $id) 通过标识或接口类名判断是否已经绑定或注册单例
  * @method static bool exists(string $abstract) 判断容器中是否注册单实例

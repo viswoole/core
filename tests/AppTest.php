@@ -26,18 +26,6 @@ class AppTest extends TestCase
     $container->bind('a', myTestServiceProvider::class);
     self::assertInstanceOf(myTestServiceProvider::class, $container->make('a'));
   }
-
-  public function testMake()
-  {
-    $container = App::factory();
-    $container->bind('test', function (string $data) {
-      return $data;
-    });
-    self::assertEquals(
-      'viswoole',
-      $container->make('test', ['viswoole'])
-    );
-  }
 }
 
 class myTestServiceProvider

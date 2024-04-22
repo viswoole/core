@@ -21,9 +21,13 @@ namespace ViSwoole\Core;
 abstract class ServiceProvider
 {
   /**
-   * @var array 重写该属性，可批量绑定服务['tag'=>server::class]
+   * @var string[] 重写该属性，可批量注册服务
    */
   public array $bindings = [];
+  /**
+   * @var array 重写该属性，可批量注册抽象服务
+   */
+  public array $abstract = [];
 
   public function __construct(protected App $app)
   {

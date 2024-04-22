@@ -34,7 +34,7 @@ use ViSwoole\Log\LogManager;
  */
 class App extends Container
 {
-  protected array $bindings = [
+  protected array $abstract = [
     'app' => App::class,
     'env' => Env::class,
     'config' => Config::class,
@@ -95,8 +95,11 @@ class App extends Container
     // 遍历服务绑定进容器
     foreach ($services as $service) {
       if (is_string($service)) $service = new $service($this);
+      if (property_exists($service, 'abstracts')) $this->binds($service->abstracts);
+      if (property_exists($service, 'bindings')) {
+        $this->bindings = array_merge($this->bindings, $service->bindings);
+      }
       $service->register();
-      if (property_exists($service, 'bindings')) $this->binds($service->bindings);
       $this->services[] = $service;
     }
   }

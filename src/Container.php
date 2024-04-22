@@ -19,6 +19,7 @@ use ArrayAccess;
 use ArrayIterator;
 use Closure;
 use Countable;
+use InvalidArgumentException;
 use IteratorAggregate;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -46,10 +47,13 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   protected static ContainerInterface $instance;
   /**
-   * 服务绑定标识
-   * @var array
+   * @var string[] 标准服务类
    */
   protected array $bindings = [];
+  /**
+   * @var array{string:string} 抽象服务
+   */
+  protected array $abstract = [];
   /**
    * @var array 解析类时的需要触发的回调
    */
@@ -68,10 +72,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   {
     // 绑定容器短命名标识
     $this->bind('container', $this);
-    // 将容器类名映射到标识
-    $this->bind(__CLASS__, 'container');
-    // 容器接口标识绑定
-    $this->bind(ContainerInterface::class, 'container');
+    $this->bindings = array_merge($this->bindings, array_values($this->abstract));
     // 工厂单例赋值
     self::$instance = $this;
   }
@@ -80,50 +81,29 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 绑定服务到容器中
    *
    * @param string $abstract 服务标识或接口名称
-   * @param mixed|Countable|string $concrete 服务的具体实现类、闭包函数、对象实例、其他服务标识
+   * @param object|string $concrete 服务的具体实现类、对象实例
    */
-  public function bind(string $abstract, mixed $concrete): void
+  public function bind(string $abstract, object|string $concrete): void
   {
-    if (isset($this->bindings[$abstract])) {
+    if (isset($this->abstract[$abstract])) {
       trigger_error('容器中存在相同服务标识: ' . $abstract . '，请检查', E_USER_WARNING);
     }
-    if ($concrete instanceof Closure) {
-      $this->bindings[$abstract] = $concrete;
-    } elseif (is_object($concrete)) {
+    if (is_object($concrete)) {
       // 如果传入的$concrete是对象实例，则将其缓存，并映射其实例名称
       $className = get_class($concrete);
-      // 绑定映射
-      $this->bindings[$abstract] = $className;
-      // 缓存实例
+      $this->bindings[] = $className;
+      $this->abstract[$abstract] = $className;
       $this->singleInstance[$className] = $concrete;
-    } elseif (is_string($concrete)) {
-      // 如果为无效类名同时未绑定到容器中，则抛出异常
-      if (!class_exists($concrete) && !$this->has($concrete)) {
-        throw new ContainerException(
-          'Container::bind方法参数2($concrete)错误:给定的字符串非有效类名，且未绑定到容器中'
-        );
-      }
+    } elseif (class_exists($concrete)) {
       // 绑定到容器
-      $this->bindings[$abstract] = $concrete;
+      $this->bindings[] = $concrete;
+      // 标识
+      $this->abstract[$abstract] = $concrete;
     } else {
-      throw new ContainerException(
-        'Container::bind方法参数2($concrete)错误:绑定到容器的内容必须是可调用的闭包函数|有效的类名|类实例|其他已绑定服务标识。'
+      throw new InvalidArgumentException(
+        'Container::bind方法参数2($concrete)错误:绑定到容器的内容必须是有效的类名或类实例。'
       );
     }
-  }
-
-  /**
-   * 通过标识、接口、类名判断是否已注册服务
-   *
-   * @param string $id
-   * @return bool
-   */
-  #[Override] public function has(string $id): bool
-  {
-    $values = array_values($this->bindings);
-    return in_array($id, $values)
-      || isset($this->bindings[$id])
-      || isset($this->singleInstance[$id]);
   }
 
   /**
@@ -169,7 +149,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 批量绑定服务到容器中
    *
    * @access public
-   * @param array $binds
+   * @param array{string:object|string} $binds
    */
   public function binds(array $binds): void
   {
@@ -270,6 +250,19 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
+   * 通过标识、接口、类名判断是否已绑定服务
+   *
+   * @param string $id
+   * @return bool
+   */
+  #[Override] public function has(string $id): bool
+  {
+    return isset($this->abstract[$id])
+      || in_array($id, $this->bindings)
+      || isset($this->singleInstance[$id]);
+  }
+
+  /**
    * 获取容器中的服务，已经存在则直接获取。
    *
    * @param string $abstract 类名或标识
@@ -278,19 +271,17 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   public function make(string $abstract, array $vars = []): mixed
   {
-    if (!$this->has($abstract)) throw new ServiceNotFoundException("未找到{$abstract}服务");
+    if (!$this->has($abstract)) {
+      throw new ServiceNotFoundException("未找到{$abstract}服务");
+    }
     $concrete = $this->getTheRealConcrete($abstract);
-    $key = is_string($concrete) ? $concrete : $abstract;
     // 如果已经缓存过实例 直接返回
-    if (isset($this->singleInstance[$key])) {
+    if (isset($this->singleInstance[$concrete])) {
       return $this->singleInstance[$concrete];
     }
-    $result = $this->{$concrete instanceof Closure ? 'invokeFunction' : 'invokeClass'}(
-      $concrete,
-      $vars
-    );
+    $result = $this->invokeClass($concrete, $vars);
     // 判断是否需要缓存单实例
-    if (is_object($result) && !$this->isExclude($result)) $this->singleInstance[$key] = $result;
+    if (!$this->isExclude($result)) $this->singleInstance[$concrete] = $result;
     return $result;
   }
 
@@ -300,35 +291,10 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @param string $abstract 标识
    * @return string|Closure 获取真实的类名或函数
    */
-  protected function getTheRealConcrete(string $abstract): string|Closure
+  protected function getTheRealConcrete(string $abstract): string
   {
-    if (isset($this->bindings[$abstract])) {
-      $bind = $this->bindings[$abstract];
-      // 如果是闭包则直接返回闭包
-      if ($bind instanceof Closure) return $bind;
-      // 判断是否为字符串，为字符串则继续递归判断
-      if (is_string($bind)) {
-        // 避免死循环
-        if ($bind === $abstract) return $bind;
-        return $this->getTheRealConcrete($bind);
-      }
-    }
+    if (isset($this->abstract[$abstract])) return $this->abstract[$abstract];
     return $abstract;
-  }
-
-  /**
-   * 通过类名或接口、类实例判断是否已排除缓存为单例
-   *
-   * @param string|object $instance
-   * @return bool
-   */
-  public function isExclude(string|object $instance): bool
-  {
-    if (is_string($instance)) return in_array($instance, $this->exclude);
-    if (in_array(get_class($instance), $this->exclude)) return true;
-    // 遍历匹配整个列表，判断是否需要排除
-    foreach ($this->exclude as $exclude) if ($instance instanceof $exclude) return true;
-    return false;
   }
 
   /**
@@ -412,6 +378,21 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
+   * 通过类名或接口、类实例判断是否已排除缓存为单例
+   *
+   * @param string|object $instance
+   * @return bool
+   */
+  public function isExclude(string|object $instance): bool
+  {
+    if (is_string($instance)) return in_array($instance, $this->exclude);
+    if (in_array(get_class($instance), $this->exclude)) return true;
+    // 遍历匹配整个列表，判断是否需要排除
+    foreach ($this->exclude as $exclude) if ($instance instanceof $exclude) return true;
+    return false;
+  }
+
+  /**
    * 调用反射执行函数、匿名函数、以及类或方法，支持依赖注入。
    *
    * @access public
@@ -472,18 +453,13 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 注册一个解析事件回调
    *
    * @access public
-   * @param string|Closure $abstract 事件标识或回调闭包
-   * @param Closure|null $callback 事件回调
+   * @param string $abstract 类标识，或类名,可传入*代表所有
+   * @param Closure $callback 事件回调
    * @return void
    */
-  public function resolving(string|Closure $abstract, Closure $callback = null): void
+  public function resolving(string $abstract, Closure $callback): void
   {
-    if (is_string($abstract)) {
-      $key = $this->getTheRealConcrete($abstract);
-    } else {
-      $key = '*';
-      $callback = $abstract;
-    }
+    $key = $this->getTheRealConcrete($abstract);
     $this->invokeCallback[$key][] = $callback;
   }
 
@@ -491,22 +467,21 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 删除解析事件回调
    *
    * @access public
-   * @param string|Closure $abstract 标识或回调闭包
-   * @param Closure|null $callback
+   * @param string $abstract 类标识或类名
+   * @param Closure|null $callback 回调函数
    * @return void
    */
-  public function removeCallback(string|Closure $abstract, Closure $callback = null): void
+  public function removeCallback(string $abstract, Closure $callback = null): void
   {
-    if (is_string($abstract)) {
-      $key = $this->getTheRealConcrete($abstract);
-    } else {
-      $key = '*';
-      $callback = $abstract;
-    }
+    $key = $this->getTheRealConcrete($abstract);
     if (isset($this->invokeCallback[$key])) {
-      $index = array_search($callback, $this->invokeCallback[$key]);
-      if ($index !== false) {
-        unset($this->invokeCallback[$key][$index]);
+      if (is_null($callback)) {
+        unset($this->invokeCallback[$key]);
+      } else {
+        $index = array_search($callback, $this->invokeCallback[$key]);
+        if ($index !== false) {
+          unset($this->invokeCallback[$key][$index]);
+        }
       }
     }
   }
