@@ -289,7 +289,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 通过标识获取到真实映射的类名
    *
    * @param string $abstract 标识
-   * @return string|Closure 获取真实的类名或函数
+   * @return string 获取真实的类名或函数
    */
   protected function getTheRealConcrete(string $abstract): string
   {
