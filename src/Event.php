@@ -75,15 +75,22 @@ class Event
         // 获取类的方法
         $methods = $refClass->getMethods();
         foreach ($methods as $method) {
-          $methodName = preg_replace('/^on/', '', $method->getName());
-          $this->listens[$event . strtolower($methodName)][] = [
-            'limit' => $limit,
-            'count' => 0,
-            'handle' => [
-              $handle,
-              $method->getName()
-            ]
-          ];
+          if ($method->isPublic()) {
+            if ($method->isStatic()) {
+              $handle = $refClass->getName() . '::' . $method->getName();
+            } else {
+              $handle = [
+                $handle,
+                $method->getName()
+              ];
+            }
+            $methodName = strtolower($method->getName());
+            $this->listens[$event . '.' . $methodName][] = [
+              'limit' => $limit,
+              'count' => 0,
+              'handle' => $handle
+            ];
+          }
         }
       } else {
         throw new RuntimeException("{$event}事件监听的处理类{$handle}未定义");
