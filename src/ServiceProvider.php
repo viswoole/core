@@ -15,8 +15,6 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
-use Closure;
-
 /**
  * 系统服务基础类
  */
@@ -45,28 +43,4 @@ abstract class ServiceProvider
    * @return void
    */
   abstract public function register(): void;
-
-  /**
-   * 加载路由
-   *
-   * @access protected
-   * @param string $path 路由路径
-   */
-  protected function loadRoutesFrom(string $path): void
-  {
-    $this->registerRoutes(function () use ($path) {
-      include $path;
-    });
-  }
-
-  /**
-   * 注册路由
-   *
-   * @param Closure $closure
-   * @return void
-   */
-  protected function registerRoutes(Closure $closure): void
-  {
-    // TODO 注册路由
-  }
 }
