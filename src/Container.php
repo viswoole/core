@@ -85,7 +85,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   public function bind(string $abstract, mixed $concrete): void
   {
     if (isset($this->bindings[$abstract])) {
-      trigger_error('容器中存在相同服务标识覆盖: ' . $abstract . '，请检查', E_USER_WARNING);
+      trigger_error('容器中存在相同服务标识: ' . $abstract . '，请检查', E_USER_WARNING);
     }
     if ($concrete instanceof Closure) {
       $this->bindings[$abstract] = $concrete;
@@ -120,32 +120,10 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    */
   #[Override] public function has(string $id): bool
   {
-    // 通过标识获取到真实映射的类名
-    $concrete = $this->getTheRealConcrete($id);
-    if ($concrete !== $id) return true;
-    return isset($this->bindings[$id]) || isset($this->singleInstance[$id]);
-  }
-
-  /**
-   * 通过标识获取到真实映射的类名
-   *
-   * @param string $abstract 标识
-   * @return string|Closure 获取真实的类名或函数
-   */
-  protected function getTheRealConcrete(string $abstract): string|Closure
-  {
-    if (isset($this->bindings[$abstract])) {
-      $bind = $this->bindings[$abstract];
-      // 如果是闭包则直接返回闭包
-      if ($bind instanceof Closure) return $bind;
-      // 判断是否为字符串，为字符串则继续递归判断
-      if (is_string($bind)) {
-        // 避免死循环
-        if ($bind === $abstract) return $bind;
-        return $this->getTheRealConcrete($bind);
-      }
-    }
-    return $abstract;
+    $values = array_values($this->bindings);
+    return in_array($id, $values)
+      || isset($this->bindings[$id])
+      || isset($this->singleInstance[$id]);
   }
 
   /**
@@ -163,12 +141,16 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 添加一个需要排除的类或接口名称
    *
    * @access public
-   * @param string $class
+   * @param string|array $class
    * @return void
    */
-  public function addExclude(string $class): void
+  public function addExclude(string|array $class): void
   {
-    $this->exclude[] = $class;
+    if (is_array($class)) {
+      $this->exclude = array_merge($this->exclude, $class);
+    } else {
+      $this->exclude[] = $class;
+    }
   }
 
   /**
@@ -310,6 +292,28 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     // 判断是否需要缓存单实例
     if (is_object($result) && !$this->isExclude($result)) $this->singleInstance[$key] = $result;
     return $result;
+  }
+
+  /**
+   * 通过标识获取到真实映射的类名
+   *
+   * @param string $abstract 标识
+   * @return string|Closure 获取真实的类名或函数
+   */
+  protected function getTheRealConcrete(string $abstract): string|Closure
+  {
+    if (isset($this->bindings[$abstract])) {
+      $bind = $this->bindings[$abstract];
+      // 如果是闭包则直接返回闭包
+      if ($bind instanceof Closure) return $bind;
+      // 判断是否为字符串，为字符串则继续递归判断
+      if (is_string($bind)) {
+        // 避免死循环
+        if ($bind === $abstract) return $bind;
+        return $this->getTheRealConcrete($bind);
+      }
+    }
+    return $abstract;
   }
 
   /**

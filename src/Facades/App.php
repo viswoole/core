@@ -32,7 +32,6 @@ use ViSwoole\Core\Facade;
  * @method static void resolving(Closure|string $abstract, ?Closure $callback = null) 注册一个解析事件回调
  * @method static void removeCallback(Closure|string $abstract, ?Closure $callback = null) 删除解析事件回调
  * @method static mixed get(string $id) 获取容器中的对象实例
- * @method static bool hasBind(string $abstract) 判断标识或接口是否已经绑定
  * @method static bool has(string $id) 通过标识或接口类名判断是否已经绑定或注册单例
  * @method static bool exists(string $abstract) 判断容器中是否注册单实例
  * @method static void remove(string $abstract) 删除容器中的服务实例
@@ -44,7 +43,7 @@ use ViSwoole\Core\Facade;
  * @method static void setDebug(bool $debug) 设置是否启用debug模式
  * @method static bool isDebug() 是否启用debug模式
  * @method static void delExclude(string $class) 删除排除的类
- * @method static void addExclude(string $class) 设置排除的类
+ * @method static void addExclude(string|array $class) 设置排除的类
  * @method static array isExclude(string|object $instance) 通过类名或接口、类实例判断是否已排除缓存为单例
  *
  * 优化命令：php viswoole optimize:facade ViSwoole\\Core\\Facades\\App
