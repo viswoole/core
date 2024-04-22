@@ -50,6 +50,7 @@ class Config
   public function __construct(string $path = null, string $ext = '*', bool $matchCase = true)
   {
     $this->path = $path ?: getConfigPath();
+    $this->path = str_ends_with($this->path, '/') ? $this->path : $this->path . '/';
     $this->ext = $ext;
     $this->matchCase = $matchCase;
     $this->loadConfig();
