@@ -145,4 +145,38 @@ if (!function_exists('echo_log')) {
     Output::echo($message, $color, $backtrace === 0 ? 0 : 2);
   }
 }
+if (!function_exists('getAllPhpFiles')) {
+  /**
+   * 获取目录下所有PHP文件(包括子目录)
+   * @param string $dir
+   * @return array
+   */
+  function getAllPhpFiles(string $dir): array
+  {
+    $phpFiles = [];
 
+    // 打开目录
+    if ($handle = opendir($dir)) {
+      $dir = rtrim($dir, DIRECTORY_SEPARATOR);
+      // 逐个检查目录中的条目
+      while (false !== ($entry = readdir($handle))) {
+        if ($entry != '.' && $entry != '..') {
+          $path = $dir . '/' . $entry;
+
+          // 如果是目录，递归调用该函数
+          if (is_dir($path)) {
+            $phpFiles = array_merge($phpFiles, getAllPhpFiles($path));
+          } elseif (pathinfo($path, PATHINFO_EXTENSION) == 'php') {
+            // 如果是.php文件，添加到结果数组中
+            $phpFiles[] = $path;
+          }
+        }
+      }
+
+      // 关闭目录句柄
+      closedir($handle);
+    }
+
+    return $phpFiles;
+  }
+}
