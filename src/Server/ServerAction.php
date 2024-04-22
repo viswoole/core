@@ -34,7 +34,7 @@ class ServerAction
         throw new ServerException("{$server_name}服务已经在运行中，请勿重复启动。");
       }
     }
-    return Server::__make($server_name)->startServer();
+    return Server::factory($server_name)->startServer();
   }
 
   /**

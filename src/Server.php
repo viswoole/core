@@ -207,9 +207,17 @@ class Server
   }
 
   /**
-   * 工厂单例
+   * 容器make实例化
    */
-  public static function __make(string $server_name = 'http'): Server
+  public static function __make(): static
+  {
+    return self::factory();
+  }
+
+  /**
+   * 工厂单例模式
+   */
+  public static function factory(string $server_name = null): static
   {
     static $instance = null;
     if ($instance === null) $instance = new static($server_name);
