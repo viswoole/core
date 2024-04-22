@@ -15,10 +15,10 @@ declare (strict_types=1);
 
 namespace ViSwoole\Core;
 
+use ViSwoole\Cache\Cache;
+use ViSwoole\Cache\RedisManager;
 use ViSwoole\HttpServer\Contract\RequestInterface;
 use ViSwoole\HttpServer\Contract\ResponseInterface;
-use ViSwoole\HttpServer\Request;
-use ViSwoole\HttpServer\Response;
 use ViSwoole\Log\LogManager;
 
 /**
@@ -32,8 +32,8 @@ use ViSwoole\Log\LogManager;
  * @property Server $server 服务管理实例
  * @property MiddlewareManager $middleware 服务管理实例
  * @property LogManager $log 日志管理实例
- * @property Request $request 请求实例
- * @property Response $response 响应实例
+ * @property Cache $cache 缓存管理实例
+ * @property RedisManager $redis redis通道管理实例
  */
 class App extends Container
 {
@@ -45,11 +45,7 @@ class App extends Container
     'event' => Event::class,
     'validate' => Validate::class,
     'server' => Server::class,
-    'middleware' => MiddlewareManager::class,
-    'request' => Request::class,
-    RequestInterface::class => Request::class,
-    'response' => Response::class,
-    ResponseInterface::class => Response::class,
+    'middleware' => MiddlewareManager::class
   ];
   /**
    * @var array 定义需要排除的类/接口，每次通过容器反射执行该类时都会重新实例化
