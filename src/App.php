@@ -28,7 +28,6 @@ use ViSwoole\Log\LogManager;
  * @property Event $event 全局事件管理器
  * @property Validate $validate 验证器
  * @property Server $server 服务管理实例
- * @property MiddlewareManager $middleware 服务管理实例
  * @property LogManager $log 日志管理实例
  * @property Cache $cache 缓存管理实例
  * @property RedisManager $redis redis通道管理实例
@@ -42,8 +41,7 @@ class App extends Container
     'console' => Console::class,
     'event' => Event::class,
     'validate' => Validate::class,
-    'server' => Server::class,
-    'middleware' => MiddlewareManager::class
+    'server' => Server::class
   ];
   /**
    * @var ServiceProvider[] 服务列表
