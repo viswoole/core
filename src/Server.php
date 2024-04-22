@@ -146,45 +146,45 @@ class Server
   public function getConfig(): array
   {
     if (isset($this->config)) return $this->config;
-    $server = config("server.servers.$this->serverName");
-    if (empty($server)) {
+    $config = config("server.servers.$this->serverName");
+    if (empty($config)) {
       throw new ServerNotFoundException(
         "{$this->serverName}服务未定义，请检查$this->rootPath/config/autoload/server.php配置文件。"
       );
     }
-    if (!($server['type'] ?? '' instanceof SwooleServer)) {
+    if (!($config['type'] ?? '' instanceof SwooleServer)) {
       throw new ServerNotFoundException(
         "{$this->serverName}服务type属性配置错误，请检查$this->rootPath/config/autoload/server.php配置文件。"
       );
     }
     // 判断异常处理方法
-    if (!isset($server['exception_handle'])) $server['exception_handle'] = $this->default_exception_handle;
+    if (!isset($config['exception_handle'])) $config['exception_handle'] = $this->default_exception_handle;
 
     // 服务构造参数
-    $server['construct'] = array_merge(
-      $this->defaultConstructArguments, $server['construct'] ?? []
+    $config['construct'] = array_merge(
+      $this->defaultConstructArguments, $config['construct'] ?? []
     );
     // 合并配置
-    $server['options'] = array_merge($this->global_option, $server['options'] ?? []);
+    $config['options'] = array_merge($this->global_option, $config['options'] ?? []);
     // 合并事件监听
-    $events = array_merge($this->global_event, $server['events'] ?? []);
+    $events = array_merge($this->global_event, $config['events'] ?? []);
     // HOOK事件监听
-    $server['events'] = HookEventHandler::hook($events);
+    $config['events'] = HookEventHandler::hook($events);
     // 任务回调协程化
-    $server['options'][Constant::OPTION_TASK_ENABLE_COROUTINE] = true;
+    $config['options'][Constant::OPTION_TASK_ENABLE_COROUTINE] = true;
     // 判断PID存储路径是否设置
-    if (empty($server['options'][Constant::OPTION_PID_FILE])) {
-      $server['options'][Constant::OPTION_PID_FILE] = $this->default_pid_store_dir . "/$this->serverName.pid";
+    if (empty($config['options'][Constant::OPTION_PID_FILE])) {
+      $config['options'][Constant::OPTION_PID_FILE] = $this->default_pid_store_dir . "/$this->serverName.pid";
     }
     // 判断PID存储路径是否存在，如果不存在则创建
-    $pid_file = $server['options'][Constant::OPTION_PID_FILE];
+    $pid_file = $config['options'][Constant::OPTION_PID_FILE];
     // 获取目录路径
     $directory = dirname($pid_file);
     // 检查目录是否存在，如果不存在则创建它
     if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
       die("无法创建目录: $directory");
     }
-    return $server;
+    return $config;
   }
 
   /**
