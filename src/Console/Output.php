@@ -70,7 +70,13 @@ class Output
     int    $backtrace = 1
   ): void
   {
-    if (array_key_exists($color, self::COLORS)) $color = self::LEVEL_COLOR[$color];
+    if (array_key_exists($color, self::LEVEL_COLOR)) {
+      $color = self::LEVEL_COLOR[$color];
+    } else {
+      $console_color_pattern = '/^(\033)\[[0-9;]+m$/';
+      $isColor = preg_match($console_color_pattern, $color);
+      $color = $isColor ? $color : self::COLORS['GREEN'];
+    }
     $titleLength = strlen($title);
     $trace = self::getTrace($backtrace);
     $traceLength = strlen($trace);
@@ -81,7 +87,6 @@ class Output
     // 使用max找到最长的长度
     $contentMaxLength = max($lengths);
     $rowLength = max($contentMaxLength, $titleLength, $traceLength, $minLength);
-
     echo $color . str_pad($title, $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
 
     echo self::COLORS['DEFAULT'] . var_export($data, true) . PHP_EOL;
