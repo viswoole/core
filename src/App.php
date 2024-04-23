@@ -63,7 +63,7 @@ class App extends Container
   {
     date_default_timezone_set($this->config->get('app.default_timezone', 'Asia/Shanghai'));
     $this->load();
-    $this->event->emit('AppInit');
+    $this->event->emit('AppInit', [$this]);
   }
 
   /**
@@ -185,6 +185,6 @@ class App extends Container
    */
   public function __destruct()
   {
-    $this->event->emit('AppDestroyed');
+    $this->event->emit('AppDestroyed', [$this]);
   }
 }

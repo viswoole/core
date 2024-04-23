@@ -233,6 +233,7 @@ class Server
     $serverName = $this->serverName;
     if ($this->status) throw new ServerException("{$serverName}服务已在运行中，请勿重复启动服务。");
     $this->status = true;
+    Event::factory()->emit('ServerStartBefore', [$this]);
     $result = $this->server->start();
     $this->status = $result;
     if (!$result) throw new ServerException("{$serverName}服务启动失败");
