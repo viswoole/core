@@ -139,9 +139,7 @@ class Server
   /**
    * 加载服务配置
    *
-   * @param string $server_name 服务名称
    * @return array
-   * @throws ServerNotFoundException 服务未定义时触发
    */
   public function getConfig(): array
   {
