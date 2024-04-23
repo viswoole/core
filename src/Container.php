@@ -396,11 +396,11 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * 调用反射执行函数、匿名函数、以及类或方法，支持依赖注入。
    *
    * @access public
-   * @param callable|string $callable 接收[$object|className,$method]或函数,匿名函数，以及类名或函数名
+   * @param callable|string|array $callable |string $callable 接收[$object|className,$method]或函数,匿名函数，以及类名或函数名
    * @param array $vars 参数
    * @return mixed
    */
-  public function invoke(callable|string $callable, array $vars = []): mixed
+  public function invoke(callable|string|array $callable, array $vars = []): mixed
   {
     if ($callable instanceof Closure) {
       return $this->invokeFunction($callable, $vars);
