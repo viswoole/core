@@ -80,13 +80,8 @@ class Output
     $titleLength = strlen($title);
     $trace = self::getTrace($backtrace);
     $traceLength = strlen($trace);
-    $content = var_export($data, true);
     $minLength = 50;
-    // 使用array_map和strlen获取每个元素的长度
-    $lengths = array_map('strlen', explode("\n", $content));
-    // 使用max找到最长的长度
-    $contentMaxLength = max($lengths);
-    $rowLength = max($contentMaxLength, $titleLength, $traceLength, $minLength);
+    $rowLength = max($titleLength, $traceLength, $minLength);
     echo $color . str_pad($title, $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
 
     echo self::COLORS['DEFAULT'] . var_export($data, true) . PHP_EOL;
