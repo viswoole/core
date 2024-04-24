@@ -78,21 +78,22 @@ class Output
       $color = $isColor ? $color : self::COLORS['GREEN'];
     }
     $titleLength = strlen($title);
-    $trace = self::getTrace($backtrace);
+    $trace = $backtrace === 0 ? '' : self::getTrace($backtrace);
     $traceLength = strlen($trace);
     $minLength = 50;
     $rowLength = max($titleLength, $traceLength, $minLength);
-    echo $color . str_pad($title, $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
-
+    // 输出标题
+    echo PHP_EOL . $color . str_pad($title, $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
+    // 输出内容
     echo self::COLORS['DEFAULT'] . var_export($data, true) . PHP_EOL;
-
+    // 输出结尾
     echo $color . str_pad(
         $trace, $rowLength, '-', STR_PAD_BOTH
       ) . PHP_EOL;
     if ($traceLength === $rowLength) {
-      echo $color . str_repeat('-', $rowLength) . PHP_EOL . PHP_EOL . self::COLORS['DEFAULT'];
+      echo $color . str_repeat('-', $rowLength) . self::COLORS['DEFAULT'];
     } else {
-      echo PHP_EOL . self::COLORS['DEFAULT'];
+      echo self::COLORS['DEFAULT'];
     }
   }
 
@@ -146,6 +147,6 @@ class Output
       $isColor = preg_match($console_color_pattern, $color);
       $color = $isColor ? $color : self::COLORS['DEFAULT'];
     }
-    echo "{$color}[$date]: $message$trace" . PHP_EOL . self::COLORS['DEFAULT'];
+    echo PHP_EOL . "{$color}[$date]: $message$trace" . self::COLORS['DEFAULT'];
   }
 }
