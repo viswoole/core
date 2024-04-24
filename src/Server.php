@@ -95,7 +95,7 @@ class Server
     );
     // 配置默认PID存储目录
     $this->default_pid_store_dir = config(
-      'default_pid_store_dir',
+      'server.default_pid_store_dir',
       $this->rootPath . '/runtime/server_pid'
     );
     $default_global_option = [
