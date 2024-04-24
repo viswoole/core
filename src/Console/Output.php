@@ -83,7 +83,7 @@ class Output
     $minLength = 50;
     $rowLength = max($titleLength, $traceLength, $minLength);
     // 输出标题
-    echo PHP_EOL . $color . str_pad($title, $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
+    echo $color . str_pad($title, $rowLength, '-', STR_PAD_BOTH) . PHP_EOL;
     // 输出内容
     echo self::COLORS['DEFAULT'] . var_export($data, true) . PHP_EOL;
     // 输出结尾
@@ -91,9 +91,9 @@ class Output
         $trace, $rowLength, '-', STR_PAD_BOTH
       ) . PHP_EOL;
     if ($traceLength === $rowLength) {
-      echo $color . str_repeat('-', $rowLength) . self::COLORS['DEFAULT'];
+      echo $color . str_repeat('-', $rowLength) . PHP_EOL . self::COLORS['DEFAULT'];
     } else {
-      echo self::COLORS['DEFAULT'];
+      echo self::COLORS['DEFAULT'] . PHP_EOL;
     }
   }
 
@@ -147,6 +147,6 @@ class Output
       $isColor = preg_match($console_color_pattern, $color);
       $color = $isColor ? $color : self::COLORS['DEFAULT'];
     }
-    echo PHP_EOL . "{$color}[$date]: $message$trace" . self::COLORS['DEFAULT'];
+    echo "{$color}[$date]: $message$trace" . PHP_EOL . self::COLORS['DEFAULT'];
   }
 }
