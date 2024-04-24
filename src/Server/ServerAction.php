@@ -29,12 +29,23 @@ class ServerAction
     $pid = self::getServerPid($server_name);
     if ($pid) {
       if ($forceStart) {
-        Process::kill($pid, SIGTERM);
+        $i = 0;
+        while ($i++ <= 5) {
+          $pid = self::getServerPid($server_name);
+          if (!$pid) {
+            return Server::factory($server_name)->startServer();
+          } else {
+            Process::kill($pid, SIGTERM);
+            sleep(1);
+          }
+        }
+        throw new ServerException("{$server_name}服务强制重启失败。");
       } else {
         throw new ServerException("{$server_name}服务已经在运行中，请勿重复启动。");
       }
+    } else {
+      return Server::factory($server_name)->startServer();
     }
-    return Server::factory($server_name)->startServer();
   }
 
   /**
@@ -46,19 +57,20 @@ class ServerAction
    */
   public static function getServerPid(string $server_name): false|int
   {
-    $pid_file = config("server.servers.$server_name.options.pid_file");
+    $pid_file = config("server.servers.$server_name.options.pid_store_dir");
     if (empty($pid_file)) {
       $pid_file = config(
-        'default_pid_store_dir',
+        'server.default_pid_store_dir',
         getRootPath() . '/runtime/server_pid'
       );
     }
+    $pid_file = $pid_file . "/$server_name.pid";
     //读取服务进程id 判断服务是否正在运行
     $pid = null;
     $status = false;
     if (is_file($pid_file)) {
       // 获取PID内容
-      $file_content = file_get_contents($pid_file);
+      $file_content = @file_get_contents($pid_file);
       if (!empty($file_content)) {
         $pid = (int)$file_content;
         // 判断进程是否正在运行
