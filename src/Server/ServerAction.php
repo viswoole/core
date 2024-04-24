@@ -123,10 +123,11 @@ class ServerAction
       foreach ($files as $file) {
         $pid = file_get_contents($file);
         $status = Process::kill((int)$pid, SIGTERM);
+        $server_name = basename($file, '.pid');
         if (!$status) {
-          Output::error("向服务进程($pid)发送SIGTERM信号失败", 0);
+          Output::error("向{$server_name}服务进程($pid)发送SIGTERM信号失败", 0);
         } else {
-          Output::success("向服务进程($pid)发送SIGTERM信号成功", 0);
+          Output::success("向{$server_name}服务进程($pid)发送SIGTERM信号成功", 0);
         }
       }
     } else {
@@ -134,9 +135,9 @@ class ServerAction
       if ($pid) {
         $status = Process::kill($pid, SIGTERM);
         if (!$status) {
-          Output::error("向服务进程($pid)发送SIGTERM信号失败", 0);
+          Output::error("向{$server_name}服务进程($pid)发送SIGTERM信号失败", 0);
         } else {
-          Output::success("向服务进程($pid)发送SIGTERM信号成功", 0);
+          Output::success("向{$server_name}服务进程($pid)发送SIGTERM信号成功", 0);
         }
       }
     }
