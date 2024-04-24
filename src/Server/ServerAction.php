@@ -16,6 +16,7 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Server;
 
 use Swoole\Process;
+use ViSwoole\Core\Console\Output;
 use ViSwoole\Core\Server;
 use ViSwoole\Core\Server\Exception\ServerException;
 
@@ -57,14 +58,8 @@ class ServerAction
    */
   public static function getServerPid(string $server_name): false|int
   {
-    $pid_file = config("server.servers.$server_name.options.pid_store_dir");
-    if (empty($pid_file)) {
-      $pid_file = config(
-        'server.default_pid_store_dir',
-        getRootPath() . '/runtime/server_pid'
-      );
-    }
-    $pid_file = $pid_file . "/$server_name.pid";
+    $pid_dir = self::getPidStore($server_name);
+    $pid_file = $pid_dir . "/$server_name.pid";
     //读取服务进程id 判断服务是否正在运行
     $pid = null;
     $status = false;
@@ -80,6 +75,25 @@ class ServerAction
       }
     }
     return $status ? $pid : false;
+  }
+
+  /**
+   * 获取PID存储目录
+   *
+   * @param string|null $server_name
+   * @return string
+   */
+  public static function getPidStore(?string $server_name): string
+  {
+    $pid_dir = null;
+    if ($server_name) $pid_dir = config("server.servers.$server_name.options.pid_store_dir");
+    if (empty($pid_dir)) {
+      $pid_dir = config(
+        'server.default_pid_store_dir',
+        getRootPath() . '/runtime/server_pid'
+      );
+    }
+    return $pid_dir;
   }
 
   /**
@@ -101,12 +115,30 @@ class ServerAction
    * @param string $server_name
    * @return void
    */
-  public static function close(string $server_name): void
+  public static function close(string $server_name = null): void
   {
-    $pid = self::getServerPid($server_name);
-    if ($pid) {
-      $status = Process::kill($pid, SIGTERM);
-      if (!$status) throw new ServerException("{$server_name}服务停止运行失败");
+    if (empty($server_name)) {
+      $pid_dir = self::getPidStore(null);
+      $files = glob($pid_dir . '/*.pid');
+      foreach ($files as $file) {
+        $pid = file_get_contents($file);
+        $status = Process::kill((int)$pid, SIGTERM);
+        if (!$status) {
+          Output::error("向服务进程($pid)发送SIGTERM信号失败");
+        } else {
+          Output::success("向服务进程($pid)发送SIGTERM信号成功");
+        }
+      }
+    } else {
+      $pid = self::getServerPid($server_name);
+      if ($pid) {
+        $status = Process::kill($pid, SIGTERM);
+        if (!$status) {
+          Output::error("向服务进程($pid)发送SIGTERM信号失败");
+        } else {
+          Output::success("向服务进程($pid)发送SIGTERM信号成功");
+        }
+      }
     }
   }
 

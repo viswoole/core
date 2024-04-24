@@ -38,7 +38,7 @@ class ServerClose extends Command
   {
     $this->addArgument(
       'server',
-      InputArgument::REQUIRED,
+      InputArgument::OPTIONAL,
       'Name of the server to close'
     );
   }
@@ -53,7 +53,6 @@ class ServerClose extends Command
       $io->error($e->getMessage());
       return Command::FAILURE;
     }
-    $io->success("{$service}服务停止运行成功");
     return Command::SUCCESS;
   }
 }

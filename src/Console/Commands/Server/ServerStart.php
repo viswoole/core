@@ -39,8 +39,9 @@ class ServerStart extends Command
   {
     $this->addArgument(
       'service',
-      InputArgument::REQUIRED,
-      'Name of the service to start'
+      InputArgument::OPTIONAL,
+      'Name of the service to start',
+      config('server.default_start_server')
     );
     $this->addOption(
       'force',
