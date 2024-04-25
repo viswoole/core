@@ -34,7 +34,7 @@ class ServerAction
         while ($i++ <= 5) {
           $pid = self::getServerPid($server_name);
           if (!$pid) {
-            return Server::factory($server_name)->startServer();
+            return Server::factory($server_name)->start();
           } else {
             Process::kill($pid, SIGTERM);
             sleep(1);
@@ -45,7 +45,7 @@ class ServerAction
         throw new ServerException("{$server_name}服务已经在运行中，请勿重复启动。");
       }
     } else {
-      return Server::factory($server_name)->startServer();
+      return Server::factory($server_name)->start();
     }
   }
 
