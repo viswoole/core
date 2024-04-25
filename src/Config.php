@@ -89,7 +89,9 @@ class Config
         'json' => json_decode(file_get_contents($file), true),
         default => [],
       };
-      $configs[$key] = isset($configs[$key]) ? array_merge($configs[$key], $config) : $config;
+      if (isset($config) && is_array($config)) {
+        $configs[$key] = isset($configs[$key]) ? array_merge($configs[$key], $config) : $config;
+      }
     }
 
     if (!$this->matchCase) $configs = $this->recursiveArrayKeyToLower($configs);
