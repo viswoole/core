@@ -25,7 +25,19 @@ use ViSwoole\Core\Server\Exception\ServerException;
  */
 class ServerAction
 {
-  public static function start(string $server_name, bool $forceStart = false): bool
+  /**
+   * 启动服务
+   *
+   * @param string $server_name 服务名称
+   * @param bool $forceStart 强制启动，自动关闭正在运行的进程
+   * @param bool $daemonize 进程守护后台运行
+   * @return bool
+   */
+  public static function start(
+    string $server_name,
+    bool   $forceStart = false,
+    bool   $daemonize = false
+  ): bool
   {
     $pid = self::getServerPid($server_name);
     if ($pid) {
@@ -34,7 +46,7 @@ class ServerAction
         while ($i++ <= 5) {
           $pid = self::getServerPid($server_name);
           if (!$pid) {
-            return Server::factory($server_name)->start();
+            return Server::factory($server_name)->start($daemonize);
           } else {
             Process::kill($pid, SIGTERM);
             sleep(1);
@@ -45,7 +57,7 @@ class ServerAction
         throw new ServerException("{$server_name}服务已经在运行中，请勿重复启动。");
       }
     } else {
-      return Server::factory($server_name)->start();
+      return Server::factory($server_name)->start($daemonize);
     }
   }
 

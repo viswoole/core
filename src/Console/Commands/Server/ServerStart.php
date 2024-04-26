@@ -49,15 +49,22 @@ class ServerStart extends Command
       InputOption::VALUE_NONE,
       'Force the service to start'
     );
+    $this->addOption(
+      'daemonize',
+      'd',
+      InputOption::VALUE_NONE,
+      'Daemonize the service to daemonize start'
+    );
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int
   {
     $service = $input->getArgument('service');
     $force = $input->getOption('force');
+    $daemonize = $input->getOption('daemonize');
     $io = new SymfonyStyle($input, $output);
     try {
-      ServerAction::start($service, $force);
+      ServerAction::start($service, $force, $daemonize);
     } catch (Throwable $e) {
       $io->error($e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
       return Command::FAILURE;

@@ -293,15 +293,22 @@ class Server
    * 启动服务
    *
    * @access public
+   * @param bool $daemonize 进程守护
    * @return bool
    */
-  public function start(): bool
+  public function start(bool $daemonize = false): bool
   {
     $serverName = $this->serverName;
     if ($this->isStart) throw new ServerException("{$serverName}服务已在运行中，请勿重复启动服务。");
     $this->isStart = true;
     // 触发ServerStartBefore事件
     Event::factory()->emit('ServerStartBefore', [$this]);
+    // 进程守护
+    if ($daemonize) {
+      $this->server->set([
+        Constant::OPTION_DAEMONIZE => $daemonize
+      ]);
+    }
     $result = $this->server->start();
     $this->isStart = $result;
     if (!$result) throw new ServerException("{$serverName}服务启动失败");
