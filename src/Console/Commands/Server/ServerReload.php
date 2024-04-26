@@ -39,8 +39,9 @@ class ServerReload extends Command
   {
     $this->addArgument(
       'service',
-      InputArgument::REQUIRED,
-      'Name of the service to reload'
+      InputArgument::OPTIONAL,
+      'Name of the service to reload',
+      config('server.default_start_server')
     );
     $this->addOption(
       'task',
@@ -48,15 +49,26 @@ class ServerReload extends Command
       InputOption::VALUE_NONE,
       'Reload only the task process'
     );
+    $this->addOption(
+      'force',
+      'f',
+      InputOption::VALUE_NONE,
+      'Shut down all service processes and restart the entire service.'
+    );
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int
   {
     $service = $input->getArgument('service');
     $taskReload = $input->getOption('task');
+    $force = $input->getOption('force');
     $io = new SymfonyStyle($input, $output);
     try {
-      ServerAction::reload($service, $taskReload);
+      if ($force) {
+        ServerAction::start($service, $force);
+      } else {
+        ServerAction::reload($service, $taskReload);
+      }
     } catch (Throwable $e) {
       $io->error($e->getMessage());
       return Command::FAILURE;
