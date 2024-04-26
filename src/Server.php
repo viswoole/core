@@ -25,6 +25,7 @@ use ViSwoole\Core\Server\EventHandle;
 use ViSwoole\Core\Server\Exception\ServerException;
 use ViSwoole\Core\Server\Exception\ServerNotFoundException;
 use ViSwoole\Core\Server\HookEventHandler;
+use ViSwoole\Core\Server\Task;
 use ViSwoole\HttpServer\Exception\Handle;
 
 /**
@@ -238,24 +239,28 @@ class Server
    */
   protected function createSwooleServer(): SwooleServer
   {
-    // 实例化swoole服务
+    /**
+     * @var SwooleServer $server
+     */
     $server = new $this->config['type'](...$this->config['construct']);
+    $events = $this->config['events'] ?? [];
+    if (isset($events[Constant::EVENT_TASK])) {
+      if (
+        $events[Constant::EVENT_TASK] === Task::class . '::' . 'dispatch'
+        || $events[Constant::EVENT_TASK] === [Task::class, 'dispatch']
+      ) {
+        $this->config['options'][Constant::OPTION_TASK_USE_OBJECT] = true;
+        // 启动任务管理器
+        Task::factory();
+      }
+    }
     // 设置配置
     $server->set($this->config['options']);
-    $events = $this->config['events'] ?? [];
     // 注册监听事件
     foreach ($events as $event_name => $handler) {
       $server->on($event_name, $handler);
     }
     return $server;
-  }
-
-  /**
-   * 容器make实例化
-   */
-  public static function __make(): static
-  {
-    return self::factory();
   }
 
   /**
@@ -269,6 +274,14 @@ class Server
     }
     if ($instance === null) $instance = new static($server_name);
     return $instance;
+  }
+
+  /**
+   * 容器make实例化
+   */
+  public static function __make(): static
+  {
+    return self::factory();
   }
 
   public static function __callStatic(string $name, array $arguments)
