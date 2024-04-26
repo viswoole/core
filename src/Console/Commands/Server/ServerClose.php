@@ -39,7 +39,8 @@ class ServerClose extends Command
     $this->addArgument(
       'server',
       InputArgument::OPTIONAL,
-      'Name of the server to close'
+      'Name of the server to close',
+      config('server.default_start_server')
     );
   }
 
