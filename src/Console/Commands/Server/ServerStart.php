@@ -47,13 +47,13 @@ class ServerStart extends Command
       'force',
       'f',
       InputOption::VALUE_NONE,
-      'Force the service to start'
+      'Force the service to start.'
     );
     $this->addOption(
       'daemonize',
       'd',
       InputOption::VALUE_NONE,
-      'Daemonize the service to daemonize start'
+      'Daemonize the service to daemonize start.'
     );
   }
 
