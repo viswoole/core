@@ -55,25 +55,32 @@ class ServerReload extends Command
       InputOption::VALUE_NONE,
       'Shut down all service processes and restart the entire service.'
     );
+    $this->addOption(
+      'daemonize',
+      'd',
+      InputOption::VALUE_NONE,
+      'Daemonize the service to daemonize start.'
+    );
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int
   {
     $service = $input->getArgument('service');
-    $taskReload = $input->getOption('task');
     $force = $input->getOption('force');
     $io = new SymfonyStyle($input, $output);
     try {
       if ($force) {
-        ServerAction::start($service, $force);
+        $daemonize = $input->getOption('daemonize');
+        ServerAction::start($service, $force, $daemonize);
       } else {
+        $taskReload = $input->getOption('task');
         ServerAction::reload($service, $taskReload);
       }
     } catch (Throwable $e) {
       $io->error($e->getMessage());
       return Command::FAILURE;
     }
-    $io->success("{$service}服务重启成功");
+    $io->success($force ? "{$service}服务进程强制重启成功" : "{$service}服务进程重启成功");
     return Command::SUCCESS;
   }
 }
