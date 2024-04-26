@@ -53,7 +53,11 @@ class Event
   {
     $listen = config('listens', []);
     foreach ($listen as $event => $handle) {
-      if (!empty($handle)) $this->on($event, $handle);
+      if (!empty($handle)) {
+        foreach ($handle as $item) {
+          $this->on($event, $item);
+        }
+      }
     }
   }
 
