@@ -250,8 +250,8 @@ class Server
         || $events[Constant::EVENT_TASK] === [Task::class, 'dispatch']
       ) {
         $this->config['options'][Constant::OPTION_TASK_USE_OBJECT] = true;
-        // 启动任务管理器
-        Task::factory();
+        // 初始化任务管理器
+        Task::init();
       }
     }
     // 设置配置
@@ -261,6 +261,14 @@ class Server
       $server->on($event_name, $handler);
     }
     return $server;
+  }
+
+  /**
+   * 容器make实例化
+   */
+  public static function __make(): static
+  {
+    return self::factory();
   }
 
   /**
@@ -274,14 +282,6 @@ class Server
     }
     if ($instance === null) $instance = new static($server_name);
     return $instance;
-  }
-
-  /**
-   * 容器make实例化
-   */
-  public static function __make(): static
-  {
-    return self::factory();
   }
 
   public static function __callStatic(string $name, array $arguments)
