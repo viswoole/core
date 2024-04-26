@@ -27,8 +27,11 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
+use ReflectionIntersectionType;
 use ReflectionMethod;
 use ReflectionNamedType;
+use ReflectionUnionType;
+use TypeError;
 use ViSwoole\Core\Common\Arr;
 use ViSwoole\Core\Exception\ClassNotFoundException;
 use ViSwoole\Core\Exception\ContainerException;
@@ -173,7 +176,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     } catch (ReflectionException $e) {
       throw new FuncNotFoundException("函数不存在$function()", $e);
     }
-    $args = $this->bindParams($reflect, $vars);
+    $args = $this->injectParams($reflect, $vars);
     return $reflect->invoke(...$args);
   }
 
@@ -184,7 +187,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @param array $vars 传递的参数数组
    * @return array
    */
-  private function bindParams(ReflectionFunctionAbstract $reflect, array $vars = []): array
+  private function injectParams(ReflectionFunctionAbstract $reflect, array $vars = []): array
   {
     // 获取参数列表
     $params = $reflect->getParameters();
@@ -200,6 +203,8 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       $paramType = $param->getType();
       // 参数名称
       $name = $param->getName();
+      // 是否允许为null
+      $allowsNull = $param->allowsNull();
       // 键
       $key = $isIndexArray ? $index : $name;
       // 参数默认值
@@ -207,10 +212,20 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       if (is_null($paramType)) {
         $value = Arr::arrayPopValue($vars, $key, $default);
       } elseif ($paramType instanceof ReflectionNamedType) {
-        $value = $this->bindValue($vars, $paramType, $key, $default);
-      } else {
+        $validate = 'is_' . $paramType->getName();
+        $value = $this->bindObject($vars, $paramType, $key, $default);
+        if ($value && function_exists($validate) && !$validate($value)) {
+          throw new TypeError("参数{$name}必须是{$paramType}类型，给定$value");
+        }
+      } elseif ($paramType instanceof ReflectionUnionType || $paramType instanceof ReflectionIntersectionType) {
         // 联合类型直接获取
         $value = Arr::arrayPopValue($vars, $key, $default);
+      } else {
+        $value = $default;
+      }
+      if ($value === null && !$allowsNull) {
+        $paramType = (string)$paramType;
+        throw new TypeError("参数{$name}必须是{$paramType}类型，给定NULL");
       }
       $args[$key] = $value;
     }
@@ -218,7 +233,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
   }
 
   /**
-   * 绑定依赖注入的值
+   * 注入参数-绑定对象
    *
    * @param array $vars 传递的参数数组
    * @param ReflectionNamedType $paramType 参数类型
@@ -226,7 +241,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @param mixed|null $default 默认值
    * @return mixed
    */
-  private function bindValue(
+  private function bindObject(
     array               &$vars,
     ReflectionNamedType $paramType,
     string|int          $key,
@@ -240,7 +255,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       if ($value instanceof $class) return $value;
       if ($this->has($class)) {
         // 获取依赖
-        $value = $this->make($class, is_array($value) ? $value : [$value]);
+        $value = $this->make($class);
       } else {
         // 实例化一个类
         $value = $this->invokeClass($class, is_array($value) ? $value : [$value]);
@@ -317,7 +332,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       $method = $reflector->getMethod('__make');
       // 如果存在__make方法，且该方法为公开的静态方法则执行该方法
       if ($method->isPublic() && $method->isStatic()) {
-        $args = $this->bindParams($method, $vars);
+        $args = $this->injectParams($method, $vars);
         try {
           $instance = $method->invokeArgs(null, $args);
           if (!($instance instanceof $class)) {
@@ -337,7 +352,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     }
     $constructor = $reflector->getConstructor();
 
-    $args = $constructor ? $this->bindParams($constructor, $vars) : [];
+    $args = $constructor ? $this->injectParams($constructor, $vars) : [];
 
     try {
       $instance = $reflector->newInstanceArgs($args);
@@ -438,7 +453,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
         $reflect = new ReflectionMethod($method);
       }
       // 绑定参数
-      $args = $this->bindParams($reflect, $vars);
+      $args = $this->injectParams($reflect, $vars);
       // 调用方法并传入参数
       return $reflect->invokeArgs($instance, $args);
     } catch (ReflectionException $e) {
