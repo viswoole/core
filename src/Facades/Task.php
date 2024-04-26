@@ -21,8 +21,7 @@ use ViSwoole\Core\Facade;
 /**
  * 任务分发
  *
- * @method static string|false dispatch(\Swoole\Server $server, \Swoole\Server\Task $task) 分发任务
- * @method static static factory() 工厂单例模式
+ * @method static \ViSwoole\Core\Server\Task factory() 工厂单例模式
  * @method static void registers(string $prefix, string $topic_class) 批量注册任务主题
  * @method static void register(string $topic, callable $handle) 注册任务
  * @method static void push(string $topic, mixed $data, int $workerIndex = -1, ?callable $callback = null) 推送一个任务
