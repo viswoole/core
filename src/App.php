@@ -17,6 +17,7 @@ namespace ViSwoole\Core;
 
 use ViSwoole\Cache\Cache;
 use ViSwoole\Cache\RedisManager;
+use ViSwoole\Core\Server\Task;
 use ViSwoole\Log\LogManager;
 
 /**
@@ -31,6 +32,7 @@ use ViSwoole\Log\LogManager;
  * @property LogManager $log 日志管理实例
  * @property Cache $cache 缓存管理实例
  * @property RedisManager $redis redis通道管理实例
+ * @property Task $task 任务管理器
  */
 class App extends Container
 {
@@ -41,7 +43,8 @@ class App extends Container
     'console' => Console::class,
     'event' => Event::class,
     'validate' => Validate::class,
-    'server' => Server::class
+    'server' => Server::class,
+    'task' => Task::class
   ];
   /**
    * @var ServiceProvider[] 服务列表
@@ -169,7 +172,7 @@ class App extends Container
   }
 
   /**
-   * 设置是否启用debug模式
+   * 设置是否启用debug模式，在请求中设置仅对当前请求的worker进程生效
    *
    * @access public
    * @param bool $debug
