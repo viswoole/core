@@ -40,14 +40,7 @@ class Task
   /**
    * @var array<string,array{queue:bool,handle:callable}> 任务主题列表
    */
-  protected array $topics = [];
-
-  private function __construct()
-  {
-    if (is_file(getAppPath() . '/task.php')) {
-      require_once getAppPath() . '/task.php';
-    }
-  }
+  protected static array $topics = [];
 
   /**
    * 分发任务
@@ -62,30 +55,26 @@ class Task
       $data = $task->data;
       $topic = $data['topic'];
       $task->data = $data['data'];
-      $handle = self::factory()->topics[$topic]['handle'];
+      $handle = self::$topics[$topic];
       return call_user_func_array($handle, [$server, $task]);
     } catch (Throwable $e) {
-      Log::task("$topic handle error: {$e->getMessage()}", $e->getTrace());
+      Log::task("$topic handle error: {$e->getMessage()}");
       return null;
     }
   }
 
   /**
-   * 工厂单例模式
+   * 该方法用于初始化，创建服务时会自动调用，请勿在外部进行调用
    */
-  public static function factory(): static
+  public static function init(): void
   {
-    static $instance = null;
-    if ($instance === null) $instance = new static();
-    return $instance;
-  }
-
-  /**
-   * 容器make实例化
-   */
-  public static function __make(): static
-  {
-    return self::factory();
+    static $isReady = false;
+    if (!$isReady) {
+      $isReady = true;
+      if (is_file(getAppPath() . '/task.php')) {
+        require_once getAppPath() . '/task.php';
+      }
+    }
   }
 
   /**
@@ -117,7 +106,7 @@ class Task
    * @return void
    * @throws TaskException
    */
-  public function registers(string $prefix, string $topic_class): void
+  public static function registers(string $prefix, string $topic_class): void
   {
     if (!class_exists($topic_class)) throw new TaskException("$topic_class not exists");
     $refClass = new ReflectionClass($topic_class);
@@ -135,7 +124,7 @@ class Task
       } else {
         $name = $method->getName();
       }
-      $this->register($name, $handle);
+      self::register($name, $handle);
     }
   }
 
@@ -161,9 +150,9 @@ class Task
    * @param callable $handle 任务处理者
    * @return void
    */
-  public function register(string $topic, callable $handle): void
+  public static function register(string $topic, callable $handle): void
   {
-    $this->topics[$topic] = $handle;
+    self::$topics[$topic] = $handle;
   }
 
   /**
@@ -171,17 +160,17 @@ class Task
    *
    * @param string $topic 任务主题
    * @param mixed $data 要传递给任务处理者的数据
-   * @return void 任务投递成功会返回任务队列id
+   * @return int 任务投递成功会返回任务队列id
    * @throws TaskException
    */
-  public function push(
+  public static function push(
     string   $topic,
     mixed    $data,
     int      $workerIndex = -1,
     callable $callback = null
-  ): void
+  ): int
   {
-    if (!$this->has($topic)) {
+    if (!self::has($topic)) {
       throw new InvalidArgumentException('不存在任务主题: ' . $topic, 404);
     }
     $data = [
@@ -198,6 +187,7 @@ class Task
     if ($result === false) {
       throw new TaskException("{$topic}任务投递失败", 500);
     }
+    return $result;
   }
 
   /**
@@ -206,8 +196,8 @@ class Task
    * @param string $topic
    * @return bool
    */
-  public function has(string $topic): bool
+  public static function has(string $topic): bool
   {
-    return isset($this->topics[$topic]);
+    return isset(self::$topics[$topic]);
   }
 }
