@@ -161,7 +161,8 @@ class Task
    * @param string $topic 任务主题
    * @param mixed $data 要传递给任务处理者的数据
    * @return int 任务投递成功会返回任务队列id
-   * @throws TaskException
+   * @throws TaskException 任务投递失败会抛出错误
+   * @throws InvalidArgumentException 任务主题不存在时会抛出错误
    */
   public static function push(
     string   $topic,
