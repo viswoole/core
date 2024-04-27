@@ -19,10 +19,11 @@ use ArrayAccess;
 use ArrayIterator;
 use Countable;
 use IteratorAggregate;
+use JsonSerializable;
 use Override;
 use Serializable;
 
-class ArrayObject implements ArrayAccess, Countable, IteratorAggregate, Serializable
+class ArrayObject implements ArrayAccess, Countable, IteratorAggregate, Serializable, JsonSerializable
 {
 
   public function __construct(private array $array = [])
@@ -129,5 +130,13 @@ class ArrayObject implements ArrayAccess, Countable, IteratorAggregate, Serializ
   #[Override] public function offsetGet(mixed $offset): mixed
   {
     return $this->array[$offset] ?? null;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  #[Override] public function jsonSerialize(): array
+  {
+    return $this->array;
   }
 }
