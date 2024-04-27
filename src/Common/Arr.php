@@ -26,7 +26,7 @@ class Arr
    */
   public static function isIndexArray(array $array): bool
   {
-    return array_values($array) === $array;
+    return is_numeric(implode('', array_keys($array)));
   }
 
   /**
@@ -34,12 +34,16 @@ class Arr
    *
    * @access public
    * @param array $array
+   * @param bool $strict 是否严格检测为纯关联数组，不包含int键,默认严格检测
    * @return bool
    */
-  public static function isAssociativeArray(array $array): bool
+  public static function isAssociativeArray(array $array, bool $strict = true): bool
   {
     $keys = array_keys($array);
-    return array_keys($keys) !== $keys;
+    if (is_numeric(implode('', $keys))) return false;
+    if (!$strict) return true;
+    foreach ($keys as $key) if (is_int($key)) return false;
+    return true;
   }
 
   /**
