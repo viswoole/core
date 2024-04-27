@@ -15,7 +15,6 @@ declare (strict_types=1);
 
 // 该文件定义了一些常用助手函数
 
-
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use ViSwoole\Core\Console\Output;
