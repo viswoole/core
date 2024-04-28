@@ -193,8 +193,6 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     $params = $reflect->getParameters();
     // 如果没有参数 则返回空待注入参数数组
     if (empty($params)) return [];
-    // 判断是否为索引数组
-    $isIndexArray = array_values($vars) === $vars;
     $args = [];
     foreach ($params as $index => $param) {
       // 如果是可变参数则返回参数数组
@@ -205,14 +203,14 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       $name = $param->getName();
       // 是否允许为null
       $allowsNull = $param->allowsNull();
-      // 键
-      $key = $isIndexArray ? $index : $name;
+      // 先判断是否存在命名，不存在则使用位置
+      $key = array_key_exists($name, $vars) ? $name : $index;
       // 参数默认值
       $default = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
       if (is_null($paramType)) {
         $value = Arr::arrayPopValue($vars, $key, $default);
       } elseif ($paramType instanceof ReflectionNamedType) {
-        $value = $this->bindObject($vars, $paramType, $key, $default);
+        $value = $this->bindValue($vars, $paramType, $key, $default);
       } elseif ($paramType instanceof ReflectionUnionType || $paramType instanceof ReflectionIntersectionType) {
         // 联合类型直接获取
         $value = Arr::arrayPopValue($vars, $key, $default);
@@ -226,7 +224,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
           "反射调用{$fn}时，参数{$name}必须是{$paramType}类型，给定NULL in {$reflect->getFileName()}:{$reflect->getStartLine()}"
         );
       }
-      $args[$key] = $value;
+      $args[$index] = $value;
     }
     return $args;
   }
@@ -240,7 +238,7 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
    * @param mixed|null $default 默认值
    * @return mixed
    */
-  private function bindObject(
+  private function bindValue(
     array               &$vars,
     ReflectionNamedType $paramType,
     string|int          $key,
@@ -252,28 +250,10 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
       $class = $paramType->getName();
       // 判断是否直接传入了需要注入的类实例
       if ($value instanceof $class) return $value;
-      if ($this->has($class)) {
-        // 获取依赖
-        $value = $this->make($class);
-      } else {
-        // 实例化一个类
-        $value = $this->invokeClass($class, is_array($value) ? $value : [$value]);
-      }
+      // 依赖注入
+      $value = $this->make($class);
     }
     return $value;
-  }
-
-  /**
-   * 通过标识、接口、类名判断是否已绑定服务
-   *
-   * @param string $id
-   * @return bool
-   */
-  #[Override] public function has(string $id): bool
-  {
-    return isset($this->abstract[$id])
-      || in_array($id, $this->bindings)
-      || isset($this->singleInstance[$id]);
   }
 
   /**
@@ -297,6 +277,19 @@ class Container implements ContainerInterface, ArrayAccess, IteratorAggregate, C
     // 判断是否需要缓存单实例
     if (!$this->isExclude($result)) $this->singleInstance[$concrete] = $result;
     return $result;
+  }
+
+  /**
+   * 通过标识、接口、类名判断是否已绑定服务
+   *
+   * @param string $id
+   * @return bool
+   */
+  #[Override] public function has(string $id): bool
+  {
+    return isset($this->abstract[$id])
+      || in_array($id, $this->bindings)
+      || isset($this->singleInstance[$id]);
   }
 
   /**
