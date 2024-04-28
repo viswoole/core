@@ -119,11 +119,6 @@ class ArrayObject implements ArrayAccess, Countable, IteratorAggregate, Serializ
     return array_key_exists($offset, $this->array);
   }
 
-  public function __get(string $name)
-  {
-    return $this->offsetGet($name);
-  }
-
   /**
    * @inheritDoc
    */
