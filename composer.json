@@ -42,6 +42,9 @@
   },
   "extra": {
     "viswoole": {
+      "services": [
+        "\\ViSwoole\\Core\\Service\\RouterService"
+      ],
       "configs": [
         "config"
       ]
