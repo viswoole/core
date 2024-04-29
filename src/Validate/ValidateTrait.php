@@ -66,14 +66,14 @@ trait ValidateTrait
           $arrayShape = new $rule("$alias.");
           $value = $arrayShape->validate(is_array($value) ? $value : []);
         } else {
-          $result = ValidateRule::$rule($value, $params);
+          $result = ValidateRules::$rule($value, $params);
           if (!$result) {
             $message = $this->getErrorMessage(
               $field,
               $alias,
               $rule,
               $params,
-              ValidateRule::getError($rule)
+              ValidateRules::getError($rule)
             );
             throw new ValidateException($message);
           }

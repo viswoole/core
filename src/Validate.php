@@ -20,7 +20,7 @@ use InvalidArgumentException;
 use JetBrains\PhpStorm\ArrayShape;
 use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
-use ViSwoole\Core\Validate\ValidateRule;
+use ViSwoole\Core\Validate\ValidateRules;
 use ViSwoole\Core\Validate\ValidateTrait;
 
 /**
@@ -136,7 +136,7 @@ class Validate implements ValidateInterface
    */
   public function rules(array $rules): ValidateInterface
   {
-    $this->rules = ValidateRule::parseRules($rules);
+    $this->rules = ValidateRules::parseRules($rules);
     return $this;
   }
 
@@ -232,7 +232,7 @@ class Validate implements ValidateInterface
       }
       return $this;
     }
-    $this->append[$field] = ValidateRule::parseRule($rule);
+    $this->append[$field] = ValidateRules::parseRule($rule);
     return $this;
   }
 }

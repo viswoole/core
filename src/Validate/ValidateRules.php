@@ -23,7 +23,7 @@ use Exception;
 /**
  * 验证规则类
  */
-class ValidateRule
+class ValidateRules
 {
   /**
    * 默认规则提示

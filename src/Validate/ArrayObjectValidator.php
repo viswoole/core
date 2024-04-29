@@ -48,7 +48,7 @@ abstract class ArrayObjectValidator extends ArrayObject
     if (!empty($this->rules)) {
       $cacheKey = md5(get_called_class());
       if (!isset(self::$cacheShape[$cacheKey])) {
-        $this->rules = ValidateRule::parseRules($this->rules);
+        $this->rules = ValidateRules::parseRules($this->rules);
         self::$cacheShape[$cacheKey] = $this->rules;
       } else {
         $this->rules = self::$cacheShape[$cacheKey];

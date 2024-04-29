@@ -33,7 +33,7 @@ class ValidateTest extends TestCase
       $validate
         ->rules([
           'name' => function ($value) {
-            $res = Validate\ValidateRule::required($value);
+            $res = Validate\ValidateRules::required($value);
             return $res ? true : throw new ValidateException('名字验证错误');
           },
           'email|邮箱' => 'email',
