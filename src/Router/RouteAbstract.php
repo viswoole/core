@@ -56,9 +56,9 @@ abstract class RouteAbstract implements ArrayAccess
    * @param array|null $parentOption
    */
   public function __construct(
-    string|array    $paths,
-    callable|string $handler,
-    array           $parentOption = null
+    string|array          $paths,
+    callable|string|array $handler,
+    array                 $parentOption = null
   )
   {
     if (is_array($parentOption)) {
@@ -161,16 +161,15 @@ abstract class RouteAbstract implements ArrayAccess
    * @param callable|string|array $handler
    * @return void
    */
-  protected function handler(callable|string $handler): void
+  protected function handler(callable|string|array $handler): void
   {
-    if (is_string($handler)) {
-      if (str_contains($handler, '@')) {
-        $handler = explode('@', $handler);
-      } else {
-        throw new InvalidArgumentException(
-          '路由handler配置错误，需给定class::method|class@method|[class_object,method]|Closure'
-        );
-      }
+    if (is_string($handler) && str_contains($handler, '@')) {
+      $handler = explode('@', $handler);
+    }
+    if (!is_array($handler) && !is_callable($handler)) {
+      throw new InvalidArgumentException(
+        '路由handler配置错误，需给定class::method|class@method|[class|object,method]|Closure'
+      );
     }
     // [类=>方法] | 闭包
     $this->options['handler'] = $handler;
