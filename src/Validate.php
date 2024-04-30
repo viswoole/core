@@ -17,7 +17,6 @@ namespace ViSwoole\Core;
 
 use Closure;
 use InvalidArgumentException;
-use JetBrains\PhpStorm\ArrayShape;
 use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
 use ViSwoole\Core\Validate\ValidateRules;
@@ -35,7 +34,6 @@ class Validate implements ValidateInterface
   /**
    * @var array 验证规则
    */
-  #[ArrayShape(['string' => ['required' => 'bool', 'default' => 'mixed', 'rules' => 'array|Closure', 'alias' => 'string', 'illustrate' => 'string']])]
   protected array $rules = [];
   /**
    * @var array 场景需要移除的验证规则
