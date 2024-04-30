@@ -21,7 +21,7 @@ abstract class AnnotationRouteAbstract
   /**
    * @param string|string[]|null $paths null则为当前方法名
    * @param string|array $methods
-   * @param array $options
+   * @param array{describe:string,params:array,middleware:array,suffix:string[],domain:string[],pattern:array} $options
    */
   public function __construct(
     public string|array|null $paths = null,

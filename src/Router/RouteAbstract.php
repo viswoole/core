@@ -36,7 +36,7 @@ abstract class RouteAbstract implements ArrayAccess
     'describe' => '',
     // 处理方法
     'handler' => null,
-    // http请求方式
+    // 请求方式
     'method' => ['*'],
     // 请求参数验证
     'params' => [],
@@ -56,9 +56,9 @@ abstract class RouteAbstract implements ArrayAccess
    * @param array|null $parentOption
    */
   public function __construct(
-    string|array   $paths,
-    callable|array $handler,
-    array          $parentOption = null
+    string|array    $paths,
+    callable|string $handler,
+    array           $parentOption = null
   )
   {
     if (is_array($parentOption)) {
@@ -161,15 +161,14 @@ abstract class RouteAbstract implements ArrayAccess
    * @param callable|string|array $handler
    * @return void
    */
-  protected function handler(callable|string|array $handler): void
+  protected function handler(callable|string $handler): void
   {
     if (is_string($handler)) {
       if (str_contains($handler, '@')) {
         $handler = explode('@', $handler);
-      }
-      if (empty($handler) || (is_array($handler) && count($handler) === 1)) {
+      } else {
         throw new InvalidArgumentException(
-          '路由handler配置错误，需给定class::method，class@method或[class|object,method]'
+          '路由handler配置错误，需给定class::method|class@method|[class_object,method]|Closure'
         );
       }
     }
