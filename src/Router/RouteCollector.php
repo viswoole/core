@@ -18,7 +18,6 @@ namespace ViSwoole\Core\Router;
 use BadMethodCallException;
 use Closure;
 use ViSwoole\HttpServer\Exception\RouteNotFoundException;
-use ViSwoole\HttpServer\Method;
 
 /**
  * 路由收集器
@@ -74,7 +73,7 @@ class RouteCollector
    * miss路由（在未匹配到路由的时候输出）
    * @access public
    * @param Closure $handler
-   * @param Method|Method[] $method
+   * @param string|string[] $method
    * @return void
    */
   public function miss(
@@ -113,13 +112,13 @@ class RouteCollector
    * 自定义路由
    * @param string|array $paths 匹配规则user/{id:string}
    * @param string|array|Closure $handler 路由地址
-   * @param Method|Method[] $method 请求类型可传数组定义多个
+   * @param string|string[] $method 请求类型可传数组定义多个
    * @return RouteAbstract
    */
   public function addRoute(
     string|array         $paths,
     string|array|Closure $handler,
-    string|array         $method = null,
+    string|array         $method = '*',
   ): RouteAbstract
   {
     $route = new RouteItem(

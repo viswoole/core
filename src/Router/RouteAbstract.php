@@ -20,7 +20,6 @@ use Closure;
 use InvalidArgumentException;
 use Override;
 use RuntimeException;
-use ViSwoole\HttpServer\Method;
 
 /**
  * 路线配置类
@@ -181,13 +180,13 @@ abstract class RouteAbstract implements ArrayAccess
   /**
    * 请求方法
    *
-   * @param Method|Method[] $method
+   * @param string|array[] $method
    * @return static
    */
   public function method(string|array $method = '*'): static
   {
     if (is_array($method)) {
-      $this->options['method'] = $method;
+      $this->options['method'] = array_map('strtoupper', $method);
     } else {
       $this->options['method'] = explode(',', strtoupper($method));
     }
