@@ -17,7 +17,6 @@ namespace ViSwoole\Core\Router;
 
 use BadMethodCallException;
 use Closure;
-use ViSwoole\HttpServer\Contract\RequestInterface;
 use ViSwoole\HttpServer\Exception\RouteNotFoundException;
 use ViSwoole\HttpServer\Method;
 
@@ -80,12 +79,12 @@ class RouteCollector
    */
   public function miss(
     Closure      $handler,
-    Method|array $method = Method::ANY
+    string|array $method = '*'
   ): void
   {
     if (!is_array($method)) $method = [$method];
     foreach ($method as $item) {
-      $this->missRoutes[$item->name] = $handler;
+      $this->missRoutes[$item] = new RouteMiss($handler);
     }
   }
 
@@ -100,8 +99,8 @@ class RouteCollector
     $method = ['post', 'get', 'put', 'delete', 'patch', 'head', 'any', 'add'];
     if (in_array($name, $method)) {
       if ($name !== 'add') {
-        $name = strtoupper($name);
-        $arguments[] = Method::{$name};
+        $name = $name === 'any' ? '*' : strtoupper($name);
+        $arguments[] = $name;
       }
       return $this->addRoute(...$arguments);
     } else {
@@ -120,7 +119,7 @@ class RouteCollector
   public function addRoute(
     string|array         $paths,
     string|array|Closure $handler,
-    Method|array         $method = null,
+    string|array         $method = null,
   ): RouteAbstract
   {
     $route = new RouteItem(
@@ -303,19 +302,24 @@ class RouteCollector
    * 匹配路由，返回路由实例
    *
    * @access public
-   * @param RequestInterface $request
+   * @param string $path 路由路径
+   * @param array $params 路由参数,如果路由匹配到了冬天参数，则会把冬天参数合并到$params中
+   * @param string $method 请求方式
+   * @param string $domain 请求域名
    * @return RouteMiss|RouteItem
    */
-  public function matchRoute(RequestInterface $request): RouteMiss|RouteItem
+  public function matchRoute(
+    string $path,
+    array  &$params,
+    string $method,
+    string $domain,
+  ): RouteMiss|RouteItem
   {
-    $basePath = $request->getUri()->getPath();
-    $PathAndExt = explode('.', $basePath);
+    $PathAndExt = explode('.', $path);
     $path = $PathAndExt[0] ?? '/';
     $path = $path === '/' ? '/' : rtrim($path, '/');
     if (!config('router.case_sensitive', false)) $path = strtolower($path);
     $ext = $PathAndExt[1] ?? '';
-    $domain = $request->getUri()->getHost();
-    $method = $request->getMethod();
     $pattern = [];
     /** @var $route RouteAbstract 路由 */
     $route = null;
@@ -347,7 +351,7 @@ class RouteCollector
       $this->checkOption($route, 'domain', $domain);
       // 判断伪静态后缀
       $this->checkOption($route, 'suffix', $ext);
-      if (!empty($pattern)) $request->addParams($pattern);
+      if (!empty($pattern)) $params = array_merge($params, $pattern);
       return $route;
     } catch (RouteNotFoundException $e) {
       // 匹配miss路由
@@ -371,13 +375,11 @@ class RouteCollector
   ): void
   {
     if (
-      (
-        !empty($route[$option_name])
-        && !in_array('*', $route[$option_name])
+      !in_array('*', $route[$option_name] ?? [])
+      && !in_array(
+        $value, $route[$option_name] ?? []
       )
-      && !in_array($value, $route[$option_name])
     ) {
-      var_dump($option_name, $route[$option_name]);
       throw new RouteNotFoundException('路由匹配失败');
     }
   }

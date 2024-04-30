@@ -16,6 +16,7 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Router;
 
 use Closure;
+use ViSwoole\Core\App;
 
 /**
  * 路由未匹配处理
@@ -26,5 +27,15 @@ readonly class RouteMiss
     public Closure $handler
   )
   {
+  }
+
+  /**
+   * 执行路由未匹配处理
+   *
+   * @return mixed
+   */
+  public function handler(): mixed
+  {
+    return App::factory()->invokeFunction($this->handler);
   }
 }

@@ -184,18 +184,12 @@ abstract class RouteAbstract implements ArrayAccess
    * @param Method|Method[] $method
    * @return static
    */
-  public function method(Method|array $method = Method::ANY): static
+  public function method(string|array $method = '*'): static
   {
     if (is_array($method)) {
-      $newMethod = [];
-      foreach ($method as $roureMethod) {
-        if (!in_array($roureMethod->name, $newMethod)) {
-          $newMethod[] = $roureMethod->name;
-        }
-      }
-      $this->options['method'] = $newMethod;
+      $this->options['method'] = $method;
     } else {
-      $this->options['method'] = [$method->name];
+      $this->options['method'] = explode(',', strtoupper($method));
     }
     return $this;
   }

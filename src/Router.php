@@ -17,7 +17,6 @@ namespace ViSwoole\Core;
 
 use ReflectionClass;
 use ReflectionMethod;
-use ViSwoole\Core\Console\Output;
 use ViSwoole\Core\Facades\Server;
 use ViSwoole\Core\Router\Annotation\AutoRouteController;
 use ViSwoole\Core\Router\Annotation\RouteController;
@@ -207,7 +206,6 @@ class Router
     foreach (self::$serverRouteCollector as $collector) {
       $collector->parseRoute();
     }
-    Output::echo('HTTP 路由服务已准备就绪', 'NOTICE', 0);
     Event::factory()->emit('RouteLoaded');
   }
 

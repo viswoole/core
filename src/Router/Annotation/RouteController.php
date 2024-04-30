@@ -16,7 +16,6 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Router\Annotation;
 
 use Attribute;
-use ViSwoole\HttpServer\Method;
 
 /**
  * Controller注解
@@ -26,13 +25,13 @@ class RouteController extends AnnotationRouteAbstract
 {
   /**
    * @param array|string|null $prefix 前缀，null代表当前控制器类名称
-   * @param array|Method $methods 请求方法
+   * @param array|string $methods 请求方法
    * @param string|null $server 服务器名称
    * @param array $options 更多配置选项
    */
   public function __construct(
     array|string|null $prefix = null,
-    array|Method      $methods = [Method::GET, Method::POST],
+    array|string      $methods = ['GET', 'POST'],
     public ?string    $server = null,
     array             $options = []
   )
