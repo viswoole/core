@@ -67,9 +67,9 @@ class Router
     //列出指定路径中的文件和目录
     $controllers = getAllPhpFiles($directory);
     foreach ($controllers as $controller) {
-      [$class, $className] = $this->getNamespace($controller, $rootPath);
-      if (class_exists($class)) {
-        $refClass = new ReflectionClass($class);
+      [$fullClass, $className] = $this->getNamespace($controller, $rootPath);
+      if (class_exists($fullClass)) {
+        $refClass = new ReflectionClass($fullClass);
       } else {
         continue;
       }
