@@ -87,8 +87,8 @@ class ValidateTest extends TestCase
   {
     try {
       \ViSwoole\Core\Facades\Validate::rules([
-        'userInfo' => ['required', UserInfo::class],
-      ])->check(['userInfo' => ['name' => 'viswoole', 'info' => 'd']]);
+        'userInfo|用户资料' => ['required', UserInfo::class],
+      ])->check(['userInfo' => ['name' => 'viswoole', 'age' => 10]]);
     } catch (ValidateException $e) {
       var_dump($e->getMessage());
       static::assertTrue(true);
@@ -100,10 +100,10 @@ class ValidateTest extends TestCase
 class UserInfo extends Validate\ArrayObjectValidator
 {
   protected array $rules = [
-    'name' => ['required', 'max:40', 'length' => [1, 25]],
-    'info' => ['int']
+    'name|名称' => ['required', 'length' => [1, 25]],
+    'age|年龄' => ['int', 'min' => [100]]
   ];
   protected array $message = [
-    'info.int' => '{:field}验证失败'
+    'info.int' => '{:field}年龄必须为数字'
   ];
 }
