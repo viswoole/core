@@ -204,7 +204,7 @@ final class ShapeTool
       // 错误链路
       $errKey = empty($key) ? $selfKey : (app_debug() ? "$key.$selfKey" : $selfKey);
       // 判断是否为空
-      if (empty($value)) {
+      if (is_null($value)) {
         // 如果是必填参数则直接返回错误
         if ($required) {
           throw new ValidateException($errKey . '不能为空');
