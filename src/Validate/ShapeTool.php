@@ -202,7 +202,7 @@ final class ShapeTool
       // 描述
       $selfKey = empty($shape['desc']) ? $name : $shape['desc'] . (app_debug() ? "($name)" : '');
       // 错误链路
-      $errKey = empty($key) ? $selfKey : "$key.$selfKey";
+      $errKey = empty($key) ? $selfKey : (app_debug() ? "$key.$selfKey" : $selfKey);
       // 判断是否为空
       if (empty($value)) {
         // 如果是必填参数则直接返回错误
@@ -258,7 +258,7 @@ final class ShapeTool
     }
     if (!$valid) {
       $valueType = gettype($value);
-      throw new ValidateException("{$key}类型必须为 {$types}，$valueType 给定");
+      throw new ValidateException("{$key}必须为 $types 类型，$valueType 给定");
     }
     return $value;
   }
@@ -277,10 +277,10 @@ final class ShapeTool
     if (TypeTool::isAtomicType($type)) {
       // 验证内置类型
       $valid = TypeTool::$type($value);
-      if (!$valid) throw new ValidateException("{$key}类型必须为 {$type}，$valueType 给定");
+      if (!$valid) throw new ValidateException("{$key}必须为 $type 类型，$valueType 给定");
     } elseif (str_contains($type, '&')) {
       $valid = TypeTool::intersection($type, $value);
-      if (!$valid) throw new ValidateException("{$key}类型必须为 {$type}，$valueType 给定");
+      if (!$valid) throw new ValidateException("{$key}必须为 $type 类型，$valueType 给定");
     } elseif (enum_exists($type)) {
       $value = TypeTool::enum($key, $type, $value);
     } elseif (class_exists($type)) {
