@@ -243,7 +243,7 @@ final readonly class TypeTool
    */
   public static function isAtomicType(string $type): bool
   {
-    return isset(self::TYPES[$type]);
+    return in_array($type, self::TYPES);
   }
 
   /**

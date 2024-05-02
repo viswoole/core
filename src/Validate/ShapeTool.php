@@ -276,7 +276,7 @@ final class ShapeTool
     $valueType = gettype($value);
     if (TypeTool::isAtomicType($type)) {
       // 验证内置类型
-      $valid = self::$type($value);
+      $valid = TypeTool::$type($value);
       if (!$valid) throw new ValidateException("{$key}类型必须为 {$type}，$valueType 给定");
     } elseif (str_contains($type, '&')) {
       $valid = TypeTool::intersection($type, $value);
@@ -285,12 +285,12 @@ final class ShapeTool
       $value = TypeTool::enum($key, $type, $value);
     } elseif (class_exists($type)) {
       // 对类进行验证
-      if (!!$value instanceof $type && !App::factory()->has($type) && !interface_exists($type)) {
+      if (!$value instanceof $type && !App::factory()->has($type) && !interface_exists($type)) {
         $shape = self::getParamTypeShape($type);
-        $value = self::validateShape($shape, $value, $key);
+        $params = self::validateShape($shape, $value, $key);
         if (is_string(array_key_first($shape))) {
           $instance = new $type();
-          foreach ($value as $k => $v) {
+          foreach ($params as $k => $v) {
             $instance->{$k} = $v;
           }
           $value = $instance;
