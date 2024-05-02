@@ -97,7 +97,7 @@ class ValidateTest extends TestCase
 }
 
 
-class UserInfo extends Validate\ArrayObjectValidator
+class UserInfo extends Validate\Contract\ArrayObjectValidator
 {
   protected array $rules = [
     'name|名称' => ['required', 'length' => [1, 25]],

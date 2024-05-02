@@ -17,6 +17,7 @@ namespace ViSwoole\Core\Validate;
 
 use Closure;
 use ViSwoole\Core\Exception\ValidateException;
+use ViSwoole\Core\Validate\Contract\ArrayObjectValidator;
 
 trait ValidateTrait
 {

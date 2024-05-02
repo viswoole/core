@@ -13,10 +13,12 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Validate;
+namespace ViSwoole\Core\Validate\Contract;
 
 use ViSwoole\Core\Common\ArrayObject;
 use ViSwoole\Core\Exception\ValidateException;
+use ViSwoole\Core\Validate\ValidateRules;
+use ViSwoole\Core\Validate\ValidateTrait;
 
 /**
  * 用于支持复杂的键值对数组既对象验证
