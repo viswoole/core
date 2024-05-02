@@ -91,6 +91,17 @@ if (!function_exists('env')) {
     return Env::get($key, $default);
   }
 }
+if (!function_exists('app_debug')) {
+  /**
+   * 判断是否开启了debug模式
+   *
+   * @return bool
+   */
+  function app_debug(): bool
+  {
+    return \ViSwoole\Core\App::factory()->isDebug();
+  }
+}
 if (!function_exists('config')) {
   /**
    * 获取配置
