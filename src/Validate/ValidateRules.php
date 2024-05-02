@@ -703,20 +703,8 @@ class ValidateRules
       // 如果没有设置只验证的字段 或 只验证字段中存在当前字段 则解析验证规则
       $rule = self::parseRule($rule);
       foreach ($fields as $item) {
-        $default = null;
-        $doc = '';
         $required = false;
         if (is_array($rule)) {
-          // 字段为空时的默认值
-          if (array_key_exists('default', $rule)) {
-            $default = empty($rule['default']) ? null : $rule['default'][0];
-            unset($rule['default']);
-          }
-          // 字段说明
-          if (array_key_exists('doc', $rule)) {
-            $doc = empty($rule['doc']) ? '' : $rule['doc'][0];
-            unset($rule['doc']);
-          }
           // 字段是否为必填
           if (array_key_exists('required', $rule)) {
             $required = true;
@@ -726,9 +714,7 @@ class ValidateRules
         $parsedRules[$item['field']] = [
           'required' => $required,
           'rules' => $rule,
-          'alias' => $item['alias'],
-          'default' => $default,
-          'illustrate' => $doc,
+          'alias' => $item['alias']
         ];
       }
     }
