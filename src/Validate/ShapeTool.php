@@ -45,7 +45,7 @@ final class ShapeTool
    * @param object|string $objectOrClass 类实例或类名称
    * @param string $property_name 要反射的属性名称
    * @param bool $cache 缓存结果，默认TRUE
-   * @return array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string}
+   * @return array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string,depend:bool}
    */
   public static function getPropertyShape(
     object|string $objectOrClass,
@@ -87,7 +87,7 @@ final class ShapeTool
   /**
    * 解析类型结构
    *
-   * @return array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string}
+   * @return array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string,depend:bool}
    */
   private static function parseTypeShape(
     string|false                           $doc,
@@ -96,6 +96,9 @@ final class ShapeTool
   {
     /**类型*/
     $type = (string)($reflector->getType() ?? 'mixed');
+    /**是否为app依赖*/
+    $depend = App::factory()->has($type);
+    // 原生注解
     $Attributes = $reflector->getAttributes();
     // 额外的验证规则
     $rules = [];
@@ -121,7 +124,7 @@ final class ShapeTool
     }
     /**名称*/
     $name = $reflector->getName();
-    return compact('name', 'type', 'rules', 'required', 'default', 'desc');
+    return compact('name', 'type', 'rules', 'required', 'default', 'desc', 'depend');
   }
 
   /**
@@ -182,7 +185,7 @@ final class ShapeTool
    * @access public
    * @param string $key 链路
    * @param array $array 要检测的数组
-   * @param array<int|string,array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string}> $shapes 类型结构
+   * @param array<int|string,array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string,depend:bool}> $shapes 类型结构
    * @return array 验证成功返回传入的数组
    */
   private static function validateShape(array $shapes, mixed $array, string $key = ''): array
@@ -215,6 +218,12 @@ final class ShapeTool
       }
       // 类型字符串
       $type = $shape['type'];
+      // 是否为系统自动依赖注入
+      $depend = $shape['depend'];
+      if ($depend) {
+        $safetyData[$name] = App::factory()->make($type);
+        continue;
+      }
       if ($type === 'mixed') {
         $safetyData[$name] = $value;
         continue;
@@ -285,7 +294,7 @@ final class ShapeTool
       $value = TypeTool::enum($key, $type, $value);
     } elseif (class_exists($type)) {
       // 对类进行验证
-      if (!$value instanceof $type && !App::factory()->has($type) && !interface_exists($type)) {
+      if (!$value instanceof $type && !interface_exists($type)) {
         $shape = self::getParamTypeShape($type);
         $params = self::validateShape($shape, $value, $key);
         if (is_string(array_key_first($shape))) {
@@ -319,7 +328,7 @@ final class ShapeTool
    * @access public
    * @param Closure|array|string $callable
    * @param bool $cache 缓存结果，默认TRUE
-   * @return array<int|string,array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string,variadic:bool}>
+   * @return array<int|string,array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string,depend:bool,variadic:bool}>
    */
   public static function getParamTypeShape(
     Closure|array|string $callable,
@@ -363,15 +372,16 @@ final class ShapeTool
     );
     $params = $reflection->getParameters();
     $doc = $reflection->getDocComment();
-    $shape = [];
+    $shapes = [];
     foreach ($params as $param) {
-      $shape[] = array_merge(
-        self::parseTypeShape($doc, $param),
+      $shape = self::parseTypeShape($doc, $param);
+      $shapes[] = array_merge(
+        $shape,
         ['variadic' => $param->isVariadic()]
       );
     }
-    if ($cache) self::setCache($onlyKey, $shape);
-    return $shape;
+    if ($cache) self::setCache($onlyKey, $shapes);
+    return $shapes;
   }
 
   /**
@@ -390,7 +400,7 @@ final class ShapeTool
    * @param object|string $objectOrClass
    * @param int $filter 默认ReflectionProperty::IS_PUBLIC，公开属性
    * @param bool $cache 缓存结果，默认TRUE
-   * @return array<string,array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string}>类的Public属性列表
+   * @return array<string,array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string,depend:bool}>类的Public属性列表
    */
   public static function getClassPropertyShape(
     object|string $objectOrClass,
