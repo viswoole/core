@@ -40,18 +40,12 @@ trait ValidateTrait
     $alias = $metadata['alias'];
     // 拿到待验证的规则 [rule=>params] | 闭包函数
     $rules = $metadata['rules'];
-    // 是否具备默认值
-    $default = $metadata['default'];
     // 是否为必填参数
     $required = $metadata['required'];
-    if (empty($value)) {
-      if ($required) {
-        throw new ValidateException(
-          $this->getErrorMessage($field, $alias, 'required', [], $alias . '不能为空')
-        );
-      } else {
-        $value = $default;
-      }
+    if (empty($value) && $required) {
+      throw new ValidateException(
+        $this->getErrorMessage($field, $alias, 'required', [], $alias . '不能为空')
+      );
     }
     if ($rules instanceof Closure) {
       $result = $rules($value, $alias);
