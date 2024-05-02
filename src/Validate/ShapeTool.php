@@ -202,7 +202,7 @@ final class ShapeTool
       // 描述
       $selfKey = empty($shape['desc']) ? $name : $shape['desc'] . (app_debug() ? "($name)" : '');
       // 错误链路
-      $errKey = empty($key) ? $selfKey : "$key.$selfKey";
+      $errKey = empty($key) ? $selfKey : (app_debug() ? "$key.$selfKey" : $selfKey);
       // 判断是否为空
       if (empty($value)) {
         // 如果是必填参数则直接返回错误
