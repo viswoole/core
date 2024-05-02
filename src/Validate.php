@@ -17,8 +17,8 @@ namespace ViSwoole\Core;
 
 use Closure;
 use InvalidArgumentException;
-use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Exception\ValidateException;
+use ViSwoole\Core\Validate\Contract\ValidateInterface;
 use ViSwoole\Core\Validate\ValidateRules;
 use ViSwoole\Core\Validate\ValidateTrait;
 
@@ -130,9 +130,9 @@ class Validate implements ValidateInterface
    *
    * @access public
    * @param array $rules 验证规则格式：['field1|字段描述,field2'=>'rule1|rule2...' | ['rule1'=>[]...] |Closure ]
-   * @return ValidateInterface
+   * @return Validate
    */
-  public function rules(array $rules): ValidateInterface
+  public function rules(array $rules): Validate
   {
     $this->rules = ValidateRules::parseRules($rules);
     return $this;
@@ -142,9 +142,9 @@ class Validate implements ValidateInterface
    * 设置自定义提示
    *
    * @param array $message
-   * @return ValidateInterface
+   * @return Validate
    */
-  public function message(array $message): ValidateInterface
+  public function message(array $message): Validate
   {
     $this->message = $message;
     return $this;
@@ -182,9 +182,9 @@ class Validate implements ValidateInterface
    * 指定需要验证的字段列表
    *
    * @param array|string $fields 字段名
-   * @return ValidateInterface
+   * @return Validate
    */
-  protected function only(array|string $fields): ValidateInterface
+  protected function only(array|string $fields): Validate
   {
     if (is_string($fields)) $fields = explode('|', $fields);
     $this->onlyFields = $fields;
@@ -196,10 +196,12 @@ class Validate implements ValidateInterface
    *
    * @param array|string $field 字段名或关联数组键为字段值为要删除的规则
    * @param array|string|null $rule 验证规则 [rule1,rule2...]|'rule1,rule2...'
-   * @return ValidateInterface
+   * @return Validate
    */
-  protected function remove(string|array $field, array|string $rule = null
-  ): ValidateInterface
+  protected function remove(
+    string|array $field,
+    array|string $rule = null
+  ): Validate
   {
     if (is_array($field)) {
       foreach ($field as $key => $value) {
@@ -219,10 +221,10 @@ class Validate implements ValidateInterface
    *
    * @param array|string $field 字段名
    * @param string|array|Closure|null $rule 要追加的验证规则
-   * @return ValidateInterface
+   * @return Validate
    */
   protected function append(array|string $field, array|string|Closure $rule = null
-  ): ValidateInterface
+  ): Validate
   {
     if (is_array($field)) {
       foreach ($field as $key => $value) {

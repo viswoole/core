@@ -16,8 +16,8 @@ declare (strict_types=1);
 namespace ViSwoole\Core\Facades;
 
 use Override;
-use ViSwoole\Core\Contract\ValidateInterface;
 use ViSwoole\Core\Facade;
+use ViSwoole\Core\Validate\Contract\ValidateInterface;
 
 /**
  * @method static bool check(array $data, bool $batch = false) 数据验证
