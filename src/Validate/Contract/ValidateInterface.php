@@ -13,7 +13,7 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Core\Contract;
+namespace ViSwoole\Core\Validate\Contract;
 
 use ViSwoole\Core\Exception\ValidateException;
 
@@ -36,25 +36,8 @@ interface ValidateInterface
    * @access public
    * @param array $data 数据
    * @param bool $batch 是否批量验证
-   * @return array 验证成功抛出验证完成的数据
+   * @return array 验证成功返回验证完成的数据
    * @throws ValidateException 验证失败会抛出异常
    */
   public function check(array $data, bool $batch): array;
-
-  /**
-   * 设置验证规则
-   *
-   * @access public
-   * @param array $rules
-   * @return ValidateInterface
-   */
-  public function rules(array $rules): ValidateInterface;
-
-  /**
-   * 设置自定义提示
-   *
-   * @param array $message
-   * @return ValidateInterface
-   */
-  public function message(array $message): ValidateInterface;
 }
