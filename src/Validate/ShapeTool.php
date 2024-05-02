@@ -206,6 +206,14 @@ final class ShapeTool
       $selfKey = empty($shape['desc']) ? $name : $shape['desc'] . (app_debug() ? "($name)" : '');
       // 错误链路
       $errKey = empty($key) ? $selfKey : (app_debug() ? "$key.$selfKey" : $selfKey);
+      // 类型字符串
+      $type = $shape['type'];
+      // 是否为系统自动依赖注入
+      $depend = $shape['depend'];
+      if ($depend) {
+        $safetyData[$name] = App::factory()->make($type);
+        continue;
+      }
       // 判断是否为空
       if (is_null($value)) {
         // 如果是必填参数则直接返回错误
@@ -215,14 +223,6 @@ final class ShapeTool
           $safetyData[$name] = $value;
           continue;
         }
-      }
-      // 类型字符串
-      $type = $shape['type'];
-      // 是否为系统自动依赖注入
-      $depend = $shape['depend'];
-      if ($depend) {
-        $safetyData[$name] = App::factory()->make($type);
-        continue;
       }
       if ($type === 'mixed') {
         $safetyData[$name] = $value;
