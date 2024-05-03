@@ -28,6 +28,6 @@ class RouteNotFoundException extends RuntimeException
     Throwable $previous = null
   )
   {
-    parent::__construct(message: $message, code: 404, httpCode: 404, previous: $previous);
+    parent::__construct(message: $message, code: 404, previous: $previous);
   }
 }
