@@ -188,7 +188,7 @@ final class ShapeTool
    * @param array<int|string,array{name:string,type:string,rules:array<string,array>,required:bool,default:mixed,desc:string,depend:bool}> $shapes 类型结构
    * @return array 验证成功返回传入的数组
    */
-  private static function validateShape(array $shapes, mixed $array, string $key = ''): array
+  public static function validateShape(array $shapes, mixed $array, string $key = ''): array
   {
     // 如果不是传入的数组直接抛出错误
     if (!is_array($array)) throw new ValidateException("{$key}参数必须是关联数组");
