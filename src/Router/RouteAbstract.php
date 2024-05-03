@@ -20,6 +20,7 @@ use Closure;
 use InvalidArgumentException;
 use Override;
 use RuntimeException;
+use ViSwoole\Core\Validate\ShapeTool;
 
 /**
  * 路线配置类
@@ -172,6 +173,8 @@ abstract class RouteAbstract implements ArrayAccess
     }
     // [类=>方法] | 闭包
     $this->options['handler'] = $handler;
+    // 请求参数
+    $this->options['params'] = ShapeTool::getParamTypeShape($handler);
   }
 
   /**
@@ -246,18 +249,6 @@ abstract class RouteAbstract implements ArrayAccess
   abstract public function register(RouteCollector $collector): void;
 
   /**
-   * 请求参数校验规则
-   *
-   * @param array $params 参数校验规则
-   * @return static
-   */
-  public function params(array $params): static
-  {
-    $this->options['params'] = array_merge($this->options['params'], $params);
-    return $this;
-  }
-
-  /**
    * 批量设置选项
    *
    * @param array $options
@@ -266,7 +257,7 @@ abstract class RouteAbstract implements ArrayAccess
   public function options(array $options): static
   {
     foreach ($options as $key => $value) {
-      if (method_exists(__CLASS__, $key)) {
+      if (method_exists($this, $key)) {
         $this->$key($value);
       } else {
         trigger_error("不存在{$key}路由选项", E_USER_WARNING);
@@ -305,5 +296,17 @@ abstract class RouteAbstract implements ArrayAccess
   #[Override] public function offsetUnset(mixed $offset): void
   {
     throw new RuntimeException('Router option is read-only.');
+  }
+
+  /**
+   * 请求参数
+   *
+   * @param array $params shape
+   * @return static
+   */
+  protected function params(array $params): static
+  {
+    $this->options['params'] = array_merge($this->options['params'], $params);
+    return $this;
   }
 }
