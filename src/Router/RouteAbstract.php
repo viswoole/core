@@ -120,9 +120,8 @@ abstract class RouteAbstract implements ArrayAccess
       }
       if (!str_starts_with($path, '/')) {
         $path = "/$path";
-      } else {
-        $path = $path === '/' ? '/' : rtrim(!$case ? strtolower($path) : $path, '/');
       }
+      $path = $path === '/' ? '/' : rtrim(!$case ? strtolower($path) : $path, '/');
     }
     $this->pattern($pattern);
     // 合并父级path
