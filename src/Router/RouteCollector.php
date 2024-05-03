@@ -17,7 +17,8 @@ namespace ViSwoole\Core\Router;
 
 use BadMethodCallException;
 use Closure;
-use ViSwoole\HttpServer\Exception\RouteNotFoundException;
+use ViSwoole\Core\Exception\RouteNotFoundException;
+use ViSwoole\Core\Validate\ShapeTool;
 
 /**
  * 路由收集器
@@ -350,7 +351,10 @@ class RouteCollector
       $this->checkOption($route, 'domain', $domain);
       // 判断伪静态后缀
       $this->checkOption($route, 'suffix', $ext);
+      // 合并参数
       if (!empty($pattern)) $params = array_merge($params, $pattern);
+      // 验证参数
+      $params = $this->validateParams($route, $params);
       return $route;
     } catch (RouteNotFoundException $e) {
       // 匹配miss路由
@@ -381,5 +385,10 @@ class RouteCollector
     ) {
       throw new RouteNotFoundException('路由匹配失败');
     }
+  }
+
+  private function validateParams(RouteAbstract|RouteItem $route, array $params): array
+  {
+    return ShapeTool::validateShape($route->getOptions()['params'], $params);
   }
 }

@@ -1,16 +1,4 @@
 <?php
-/*
- *  +----------------------------------------------------------------------
- *  | ViSwoole [基于swoole开发的高性能快速开发框架]
- *  +----------------------------------------------------------------------
- *  | Copyright (c) 2024
- *  +----------------------------------------------------------------------
- *  | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
- *  +----------------------------------------------------------------------
- *  | Author: ZhuChongLin <8210856@qq.com>
- *  +----------------------------------------------------------------------
- */
-
 // +----------------------------------------------------------------------
 // | swoole服务配置文件
 // +----------------------------------------------------------------------
@@ -19,9 +7,11 @@ declare (strict_types=1);
 
 use Swoole\Constant;
 use Swoole\Http\Server as httpServer;
+use ViSwoole\Core\Exception\Handle;
 use ViSwoole\Core\Server\EventHandle;
+use ViSwoole\Core\Server\Task;
 use ViSwoole\HttpServer\EventHandle as HttpEventHandle;
-use ViSwoole\HttpServer\Exception\Handle;
+use ViSwoole\HttpServer\Exception\Handle as HttpExceptionHandle;
 
 return [
   // 默认启动的服务
@@ -35,7 +25,8 @@ return [
     'http' => [
       // 服务类型
       'type' => httpServer::class,
-      'exception_handle' => Handle::class,// 服务异常处理类
+      // 服务异常处理类
+      'exception_handle' => HttpExceptionHandle::class,
       // 构造参数 参考https://wiki.swoole.com/#/server/methods?id=__construct
       'construct' => [
         // 指定监听的 ip 地址。
@@ -61,8 +52,10 @@ return [
         Constant::OPTION_TASK_ENABLE_COROUTINE => true
       ],
       'events' => [
+        // HTTP请求处理
         Constant::EVENT_REQUEST => [HttpEventHandle::class, 'onRequest'],
-        Constant::EVENT_TASK => [] // 系统内置任务处理方法
+        // 任务分发
+        Constant::EVENT_TASK => [Task::class, 'dispatch']
       ]
     ]
   ],
