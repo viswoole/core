@@ -33,9 +33,10 @@ class RouteController extends AnnotationRouteAbstract
     array|string|null $prefix = null,
     array|string      $methods = ['GET', 'POST'],
     public ?string    $server = null,
+    ?string           $describe = null,
     array             $options = []
   )
   {
-    parent::__construct($prefix, $methods, $options);
+    parent::__construct($prefix, $methods, $describe, $options);
   }
 }
