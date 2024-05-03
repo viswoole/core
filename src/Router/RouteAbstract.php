@@ -126,7 +126,7 @@ abstract class RouteAbstract implements ArrayAccess
     }
     $this->pattern($pattern);
     // 合并父级path
-    if (isset($this->options['paths'])) {
+    if (!empty($this->options['paths'])) {
       $mergePaths = [];
       foreach ($this->options['paths'] as $path1) {
         foreach ($paths as $path2) {
