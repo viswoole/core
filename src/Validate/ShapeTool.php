@@ -319,10 +319,10 @@ final class ShapeTool
    *
    * Example usage:
    * ```
-   * $shapes = TypeTool::getParamTypeShape(function (Example $user){});
-   * $shapes = TypeTool::getParamTypeShape([new Example(),'method']);
-   * $shapes = TypeTool::getParamTypeShape([Example::class,'staticMethod']);
-   * $shapes = TypeTool::getParamTypeShape(Example::staticMethod);
+   * $shapes = ShapeTool::getParamTypeShape(function (Example $user){});
+   * $shapes = ShapeTool::getParamTypeShape([new Example(),'method']);
+   * $shapes = ShapeTool::getParamTypeShape([Example::class,'staticMethod']);
+   * $shapes = ShapeTool::getParamTypeShape(Example::staticMethod);
    * ```
    *
    * @access public
