@@ -28,7 +28,7 @@ class MiddlewareTest extends TestCase
 
   public function testProcess()
   {
-    Request::create(\Swoole\Http\Request::create());
+    Request::proxySwooleRequest(\Swoole\Http\Request::create());
     $response = Middleware::process(function () {
       return 1;
     }, [M1::class, M2::class]);
