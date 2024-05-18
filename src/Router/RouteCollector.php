@@ -387,6 +387,13 @@ class RouteCollector
     }
   }
 
+  /**
+   * 验证参数是否符合结构
+   *
+   * @param RouteAbstract|RouteItem $route
+   * @param array $params
+   * @return array
+   */
   private function validateParams(RouteAbstract|RouteItem $route, array $params): array
   {
     return ShapeTool::validateShape($route->getOptions()['params'], $params);
