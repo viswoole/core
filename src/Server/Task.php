@@ -27,10 +27,6 @@ use ViSwoole\Log\Facade\Log;
 /**
  * 任务分发
  *
- * 使用该方法来分发任务，服务必须配置task_enable_coroutine或task_object为true,且只能使用Task::push方法来推送任务。
- *
- * 该方法用于配置在服务的onTask事件回调中，当调用Task::push方法时，就会触发该方法。
- *
  * 配置task_ipc_mode参考 https://wiki.swoole.com/zh-cn/#/server/setting?id=task_ipc_mode
  *
  * 如果需要服务启动的时候继续执行队列中任务需配置message_queue_key参考 https://wiki.swoole.com/zh-cn/#/server/setting?id=message_queue_key
@@ -44,6 +40,10 @@ class Task
 
   /**
    * 分发任务
+   *
+   * 该方法用于配置在服务的onTask事件回调中，当调用Task::push方法时，就会触发该方法。
+   *
+   * 使用该方法来分发任务，服务必须配置task_enable_coroutine或task_object为true,且只能使用Task::push方法来推送任务。
    *
    * @param SwooleServer $server
    * @param SwooleTask $task
