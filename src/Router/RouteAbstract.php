@@ -53,7 +53,7 @@ abstract class RouteAbstract implements ArrayAccess
 
   /**
    * @param string|array $paths
-   * @param callable|array $handler
+   * @param callable|string|array $handler
    * @param array|null $parentOption
    */
   public function __construct(
