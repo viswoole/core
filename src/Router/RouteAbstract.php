@@ -338,6 +338,9 @@ abstract class RouteAbstract implements ArrayAccess
       // 子路由
       'children' => []
     ];
+    $docShape['params'] = array_filter($docShape['params'], function ($param) {
+      return !$param['depend'];
+    });
     if ($this instanceof RouteGroup) {
       $children = [];
       foreach ($this->items as $item) {
