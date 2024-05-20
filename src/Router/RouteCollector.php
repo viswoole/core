@@ -17,6 +17,7 @@ namespace ViSwoole\Core\Router;
 
 use BadMethodCallException;
 use Closure;
+use RuntimeException;
 use ViSwoole\Core\Exception\RouteNotFoundException;
 use ViSwoole\Core\Validate\ShapeTool;
 
@@ -49,6 +50,10 @@ class RouteCollector
    * @var array{string:RouteMiss} miss路由404
    */
   protected array $missRoutes = [];
+  /**
+   * @var array 路由文档结构
+   */
+  protected array $apiDoc;
 
   /**
    * 分组路由
@@ -295,7 +300,20 @@ class RouteCollector
   {
     foreach ($this->routes as $item) {
       $item->register($this);
+      $doc = $item->getApiDoc();
+      if ($doc) $this->apiDoc[] = $doc;
     }
+  }
+
+  /**
+   * 获取api文档
+   *
+   * @return array
+   */
+  public function getApiDoc(): array
+  {
+    if (!isset($this->apiDoc)) throw new RuntimeException('请等待路由解析完毕');
+    return $this->apiDoc;
   }
 
   /**
@@ -374,7 +392,10 @@ class RouteCollector
    * @param string $option_name
    * @param string $value
    */
-  private function checkOption(RouteAbstract|RouteItem $route, string $option_name, string $value
+  private function checkOption(
+    RouteAbstract|RouteItem $route,
+    string                  $option_name,
+    string                  $value
   ): void
   {
     if (

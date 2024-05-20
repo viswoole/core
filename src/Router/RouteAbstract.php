@@ -313,6 +313,45 @@ abstract class RouteAbstract implements ArrayAccess
   }
 
   /**
+   * 获取api文档
+   *
+   * @return array|null
+   */
+  public function getApiDoc(): ?array
+  {
+    if ($this->options['hidden']) return null;
+    $docShape = [
+      // 路由路径
+      'paths' => $this->options['paths'],
+      // 路由描述
+      'describe' => $this->options['describe'],
+      // 请求方式
+      'method' => $this->options['method'],
+      // 请求参数验证
+      'params' => $this->options['params'],
+      // 伪静态后缀校验，例如html
+      'suffix' => $this->options['suffix'],
+      // 域名路由
+      'domain' => $this->options['domain'],
+      // 变量正则表达式
+      'pattern' => $this->options['pattern'],
+      // 子路由
+      'children' => []
+    ];
+    if ($this instanceof RouteGroup) {
+      $children = [];
+      foreach ($this->items as $item) {
+        $item = $item->getApiDoc();
+        if (is_array($item)) {
+          $children[] = $item;
+        }
+      }
+      $docShape['children'] = $children;
+    }
+    return $docShape;
+  }
+
+  /**
    * 请求参数
    *
    * @param array $params shape
