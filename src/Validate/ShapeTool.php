@@ -448,4 +448,31 @@ final class ShapeTool
     $shape = self::getParamTypeShape($callable);
     return self::validateShape($shape, $data);
   }
+
+  /**
+   * 获取方法返回值类型
+   *
+   * @param callable $callable
+   * @return string
+   */
+  public static function getReturnType(callable $callable): string
+  {
+    try {
+      if ($callable instanceof Closure) {
+        $reflection = new ReflectionFunction($callable);
+      } elseif (is_string($callable)) {
+        if (str_contains($callable, '::')) {
+          $reflection = new ReflectionMethod($callable);
+        } else {
+          $reflection = new ReflectionFunction($callable);
+        }
+      } else {
+        $reflection = new ReflectionMethod($callable[0], $callable[1]);
+      }
+    } catch (ReflectionException $e) {
+      throw new RuntimeException($e->getMessage(), $e->getCode(), $e);
+    }
+    $returnType = $reflection->getReturnType();
+    return is_null($returnType) ? 'void' : (string)$returnType;
+  }
 }
