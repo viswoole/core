@@ -49,6 +49,8 @@ abstract class RouteAbstract implements ArrayAccess
     'domain' => ['*'],
     // 变量正则表达式
     'pattern' => [],
+    // 是否隐藏doc文档
+    'hidden' => false
   ];
 
   /**
@@ -237,6 +239,18 @@ abstract class RouteAbstract implements ArrayAccess
       $middleware = [$middleware];
     }
     $this->options['middleware'] = array_merge($this->options['middleware'], $middleware);
+    return $this;
+  }
+
+  /**
+   * 是否隐藏路由文档
+   *
+   * @param bool $hide
+   * @return static
+   */
+  public function hidden(bool $hide): static
+  {
+    $this->options['hidden'] = $hide;
     return $this;
   }
 
