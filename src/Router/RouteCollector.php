@@ -321,7 +321,7 @@ class RouteCollector
    *
    * @access public
    * @param string $path 路由路径
-   * @param array $params 路由参数,如果路由匹配到了冬天参数，则会把冬天参数合并到$params中
+   * @param array $params 请求参数，匹配到的路由动态参数会合并到params中，自动检测类型。
    * @param string $method 请求方式
    * @param string $domain 请求域名
    * @return RouteMiss|RouteItem
