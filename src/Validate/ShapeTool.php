@@ -356,7 +356,7 @@ final class ShapeTool
           $reflection = new ReflectionMethod($callable);
         } elseif (class_exists($callable)) {
           $reflection = (new ReflectionClass($callable))->getConstructor();
-          // 如果没有构造函数 则返回空数组
+          // 如果没有构造函数 则返回类公开属性
           if (is_null($reflection)) return self::getClassPropertyShape($callable);
         } elseif (function_exists($callable)) {
           $reflection = new ReflectionFunction($callable);
