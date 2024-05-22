@@ -19,6 +19,8 @@ use BadMethodCallException;
 use Closure;
 use RuntimeException;
 use ViSwoole\Core\Exception\RouteNotFoundException;
+use ViSwoole\Core\Facades\App;
+use ViSwoole\Core\Middleware;
 use ViSwoole\Core\Validate\ShapeTool;
 
 /**
@@ -324,14 +326,14 @@ class RouteCollector
    * @param array $params 请求参数，匹配到的路由动态参数会合并到params中，自动检测类型。
    * @param string $method 请求方式
    * @param string $domain 请求域名
-   * @return RouteMiss|RouteItem
+   * @return mixed 输出结果
    */
-  public function matchRoute(
+  public function dispatch(
     string $path,
-    array  &$params,
+    array  $params,
     string $method,
     string $domain,
-  ): RouteMiss|RouteItem
+  ): mixed
   {
     $PathAndExt = explode('.', $path);
     $path = $PathAndExt[0] ?? '/';
@@ -371,16 +373,21 @@ class RouteCollector
       $this->checkOption($route, 'suffix', $ext);
       // 合并参数
       if (!empty($pattern)) $params = array_merge($params, $pattern);
-      // 验证参数
-      $params = $this->validateParams($route, $params);
-      return $route;
+      return Middleware::process(function () use ($route, $params) {
+        // 验证参数
+        $params = $this->validateParams($route, $params);
+        return App::invoke($route['handler'], $params);
+      }, $route['middleware']);
     } catch (RouteNotFoundException $e) {
       // 匹配miss路由
       if (isset($this->missRoutes[$method])) {
-        return $this->missRoutes[$method];
+        $miss = $this->missRoutes[$method];
       } elseif (isset($this->missRoutes['*'])) {
-        return $this->missRoutes['*'];
+        $miss = $this->missRoutes['*'];
       }
+      // 如果匹配到miss路由执行处理方法
+      if (isset($miss)) return $miss->handler();
+      // 未匹配则抛出异常
       throw $e;
     }
   }
