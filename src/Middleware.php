@@ -104,7 +104,7 @@ class Middleware
    * // 注册一个闭包中间件，必须调用$handler才能往下执行，支持依赖注入
    * Middleware::add(function (RequestInterface $request, ResponseInterface $response, Closure $handler) {
    *   // 中间件逻辑
-   *   return $handler($request);
+   *   return $handler();
    * }, 'http');
    * // 注册一个实现了MiddlewareInterface接口的类
    * Middleware::add(UserAuthMiddleware::class, 'http');
