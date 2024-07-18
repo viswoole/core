@@ -146,7 +146,7 @@ final readonly class TypeTool
    */
   public static function iterable(mixed $value): bool
   {
-    return is_infinite($value);
+    return is_iterable($value);
   }
 
   /**
